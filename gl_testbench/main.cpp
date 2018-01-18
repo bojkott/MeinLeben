@@ -267,34 +267,34 @@ int initialiseTestbench()
 void shutdown() {
 	// shutdown.
 	// delete dynamic objects
-	for (auto m : materials)
-	{
-		delete(m);
-	}
-	for (auto t : techniques)
-	{
-		delete(t);
-	}
-	for (auto m : scene)
-	{
-		delete(m);
-	};
-	assert(pos->refCount() == 0);
-	delete pos;
-	assert(nor->refCount() == 0);
-	delete nor;
-	assert(uvs->refCount() == 0);
-	delete uvs;
-	
-	for (auto s : samplers)
-	{
-		delete s;
-	}
+	//for (auto m : materials)
+	//{
+	//	delete(m);
+	//}
+	//for (auto t : techniques)
+	//{
+	//	delete(t);
+	//}
+	//for (auto m : scene)
+	//{
+	//	delete(m);
+	//};
+	//assert(pos->refCount() == 0);
+	//delete pos;
+	//assert(nor->refCount() == 0);
+	//delete nor;
+	//assert(uvs->refCount() == 0);
+	//delete uvs;
+	//
+	//for (auto s : samplers)
+	//{
+	//	delete s;
+	//}
 
-	for (auto t : textures)
-	{
-		delete t;
-	}
+	//for (auto t : textures)
+	//{
+	//	delete t;
+	//}
 	renderer->shutdown();
 };
 
@@ -306,6 +306,6 @@ int main(int argc, char *argv[])
 	renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	//initialiseTestbench();
 	run();
-	//shutdown();
+	shutdown();
 	return 0;
 };

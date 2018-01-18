@@ -39,8 +39,39 @@ public:
 	void frame();
 
 private:
+	#ifdef _DEBUG
+		const bool enableValidationLayers = true;
+	#else
+		const bool enableValidationLayers = false;
+	#endif
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugReportFlagsEXT flags,
+		VkDebugReportObjectTypeEXT objType,
+		uint64_t obj,
+		size_t location,
+		int32_t code,
+		const char* layerPrefix,
+		const char* msg,
+		void* userData);
+
+	const std::vector<const char*> validationLayers = {
+		"VK_LAYER_LUNARG_core_validation"
+	};
+
+	VkResult CreateDebugReportCallbackEXT(
+		VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+		const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback);
+
 	SDL_Window* window;
 	VkInstance instance;
+	VkDebugReportCallbackEXT callback;
+
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
+	void createInstance();
+	void setupDebugCallback();
+	bool checkValidationLayersSupport();
+	std::vector<const char*> getRequiredExtensions();
+
 };
