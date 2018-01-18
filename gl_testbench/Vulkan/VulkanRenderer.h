@@ -1,7 +1,13 @@
 #pragma once
-#pragma comment(lib, "vulkan-1.lib")
+#include <SDL.h>
 #include <vulkan\vulkan.h>
 #include "../Renderer.h"
+
+
+#pragma comment(lib, "vulkan-1.lib")
+#pragma comment(lib,"SDL2.lib")
+#pragma comment(lib,"SDL2main.lib")
+
 
 class VulkanRenderer :
 	public Renderer
@@ -26,11 +32,15 @@ public:
 	void present();
 	int shutdown();
 
-	virtual void setClearColor(float, float, float, float);
-	virtual void clearBuffer(unsigned int);
-	// can be partially overriden by a specific Technique.
-	virtual void setRenderState(RenderState* ps);
-	// submit work (to render) to the renderer.
-	virtual void submit(Mesh* mesh);
-	virtual void frame();
+	void setClearColor(float, float, float, float);
+	void clearBuffer(unsigned int);
+	void setRenderState(RenderState* ps);
+	void submit(Mesh* mesh);
+	void frame();
+
+private:
+	SDL_Window* window;
+	VkInstance instance;
+	void initWindow(unsigned int width, unsigned int height);
+	void initVulkan();
 };
