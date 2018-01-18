@@ -1,6 +1,7 @@
 #include "VulkanRenderer.h"
 #include <SDL_vulkan.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 
 VulkanRenderer::VulkanRenderer()
 {
@@ -70,6 +71,7 @@ int VulkanRenderer::initialize(unsigned int width, unsigned int height)
 
 void VulkanRenderer::setWinTitle(const char * title)
 {
+	SDL_SetWindowTitle(this->window, title);
 }
 
 void VulkanRenderer::present()
@@ -78,6 +80,8 @@ void VulkanRenderer::present()
 
 int VulkanRenderer::shutdown()
 {
+	vkDestroyInstance(instance, nullptr);
+	SDL_Quit();
 	return 0;
 }
 
@@ -109,7 +113,7 @@ void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
 		exit(-1);
 	}
 
-	window = SDL_CreateWindow("Vulkan", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	window = SDL_CreateWindow("Vulkan", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_VULKAN);
 }
 
 void VulkanRenderer::initVulkan()
@@ -122,10 +126,26 @@ void VulkanRenderer::initVulkan()
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_0;
 
+
+	unsigned int extensionCount;
+	SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, NULL);
+	const char ** extensionNames = (const char **)malloc(sizeof(const char*) * extensionCount);
+	SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, extensionNames);
+
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
-	
+	createInfo.enabledExtensionCount = extensionCount;
+	createInfo.ppEnabledExtensionNames = extensionNames;
+	createInfo.enabledLayerCount = 0;
+
+	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+	{
+		free(extensionNames);
+		fprintf(stderr, "Failed to create Vulkan instance");
+		exit(-1);
+	}
+	free(extensionNames);
 
 	
 	//const char* instanceExtensionNames[] = { VK_KHR_SURFACE_EXTENSION_NAME };

@@ -75,8 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\include;..\GLEW\include;..\SDL\include;$(IncludePath);..\;</IncludePath>
-    <LibraryPath>..\GLEW\lib\Release\x64;..\SDL\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\include;..\GLEW\include;..\SDL\include;$(IncludePath);..\;C:\VulkanSDK\1.0.65.1\Include</IncludePath>
+    <LibraryPath>..\GLEW\lib\Release\x64;..\SDL\lib\x64;C:\VulkanSDK\1.0.65.1\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
