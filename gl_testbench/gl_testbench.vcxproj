@@ -171,6 +171,10 @@
     <ClCompile Include="Technique.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Vulkan\Sampler2DVulkan.cpp" />
+    <ClCompile Include="Vulkan\Texture2DVulkan.cpp" />
+    <ClCompile Include="Vulkan\TransformVulkan.cpp" />
+    <ClCompile Include="Vulkan\VertexBufferVulkan.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\stb_image.h" />
