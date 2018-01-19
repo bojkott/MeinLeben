@@ -121,6 +121,7 @@ int VulkanRenderer::shutdown()
 {
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
 	vkDestroyInstance(instance, nullptr);
+	vkDestroyDevice(device, nullptr);
 	SDL_Quit();
 	return 0;
 }
@@ -158,6 +159,7 @@ void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
 void VulkanRenderer::initVulkan()
 {
 	createInstance();
+	createLogicalDevice();
 
 	setupDebugCallback();
 }
@@ -197,11 +199,52 @@ void VulkanRenderer::createInstance()
 		createInfo.enabledLayerCount = 0;
 	
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+	if (FAILED(vkCreateInstance(&createInfo, nullptr, &instance)))
 	{
 		fprintf(stderr, "Failed to create Vulkan instance\n");
 		exit(-1);
 	}
+}
+
+void VulkanRenderer::createLogicalDevice()
+{
+	// Saknar en struct
+	// QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+	VkDeviceQueueCreateInfo queueCreateInfo = {};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	//queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+	float queuePriority = 1.0f; // Priority of the queue, required even
+								// if we only have one queue
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	// Structs defining available features of gfx
+	VkPhysicalDeviceFeatures deviceFeatures = {};
+	
+
+	// Configuration of device
+	VkDeviceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.enabledExtensionCount = 0;
+
+	if (enableValidationLayers)
+	{
+		createInfo.enabledLayerCount = 
+				static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+	}
+
+
+	if (FAILED(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)))
+		throw std::runtime_error("failed to create logical device");
 }
 
 
@@ -215,7 +258,7 @@ void VulkanRenderer::setupDebugCallback()
 	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 	createInfo.pfnCallback = debugCallback;
 
-	if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
+	if (FAILED(CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback))) {
 		fprintf(stderr, "Failed to set up debug callback\n");
 		exit(-1);
 	}

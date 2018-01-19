@@ -44,6 +44,7 @@ private:
 	#else
 		const bool enableValidationLayers = false;
 	#endif
+	#define FAILED(x) x != VK_SUCCESS
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugReportFlagsEXT flags,
@@ -78,6 +79,7 @@ private:
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
 	void createInstance();
+	void createLogicalDevice();
 	void setupDebugCallback();
 	bool checkValidationLayersSupport();
 	std::vector<const char*> getRequiredExtensions();
