@@ -46,6 +46,16 @@ private:
 	#endif
 	#define FAILED(x) x != VK_SUCCESS
 
+
+	struct QueueFamilityIndicies {
+		int graphicsFamily = -1;
+
+		bool isComplete()
+		{
+			return graphicsFamily >= 0;
+		}	
+	};
+
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugReportFlagsEXT flags,
 		VkDebugReportObjectTypeEXT objType,
@@ -83,5 +93,8 @@ private:
 	void setupDebugCallback();
 	bool checkValidationLayersSupport();
 	std::vector<const char*> getRequiredExtensions();
+	void pickPhysicalDevice();
+	bool isDeviceSuitable(VkPhysicalDevice device);
+	QueueFamilityIndicies findQueueFamilies(VkPhysicalDevice device);
 
 };

@@ -160,8 +160,8 @@ void VulkanRenderer::initVulkan()
 {
 	createInstance();
 	createLogicalDevice();
-
 	setupDebugCallback();
+	pickPhysicalDevice();
 }
 
 void VulkanRenderer::createInstance()
@@ -306,4 +306,67 @@ std::vector<const char*> VulkanRenderer::getRequiredExtensions()
 	}
 
 	return extensions;
+}
+
+void VulkanRenderer::pickPhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	if (deviceCount == 0)
+	{
+		fprintf(stderr, "Failed to find GPUs with vulkan support!\n");
+		exit(-1);
+	}
+	std::vector<VkPhysicalDevice> devices(deviceCount);
+	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+	for (const auto& device : devices)
+	{
+		if (isDeviceSuitable(device)) {
+			physicalDevice = device;
+			break;
+		}
+	}
+
+	if (physicalDevice == VK_NULL_HANDLE)
+	{
+		fprintf(stderr, "Failed to find a suitable GPU!\n");
+		exit(-1);
+	}
+}
+
+bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device)
+{
+	QueueFamilityIndicies indices = findQueueFamilies(device);
+	return indices.isComplete();
+	/*VkPhysicalDeviceProperties deviceProperties;
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;*/
+}
+
+VulkanRenderer::QueueFamilityIndicies VulkanRenderer::findQueueFamilies(VkPhysicalDevice device)
+{
+	QueueFamilityIndicies indices;
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	int i = 0;
+	for (const auto& queueFamily : queueFamilies) {
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = i;
+		}
+
+		if (indices.isComplete()) {
+			break;
+		}
+
+		i++;
+	}
+	return indices;
 }
