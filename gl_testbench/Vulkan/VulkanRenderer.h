@@ -8,6 +8,8 @@
 #pragma comment(lib,"SDL2.lib")
 #pragma comment(lib,"SDL2main.lib")
 
+#include <algorithm>
+
 
 class VulkanRenderer :
 	public Renderer
@@ -46,6 +48,9 @@ private:
 	#endif
 	#define FAILED(x) x != VK_SUCCESS
 
+	const std::vector<const char*> deviceExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
 
 	struct QueueFamilyIndices {
 		int graphicsFamily = -1;
@@ -54,6 +59,12 @@ private:
 		{
 			return graphicsFamily >= 0 && presentFamily >= 0;
 		}	
+	};
+
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
 	};
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -84,7 +95,10 @@ private:
 	VkDebugReportCallbackEXT callback;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device;
+	VkSwapchainKHR swapChain;
 	VkQueue graphicsQueue;
+	uint32_t height;
+	uint32_t width;
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
@@ -92,8 +106,10 @@ private:
 	void initVulkan();
 	void createInstance();
 	void createLogicalDevice();
+	void createSwapChain();
 	void setupDebugCallback();
 	bool checkValidationLayersSupport();
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	std::vector<const char*> getRequiredExtensions();
 	void pickPhysicalDevice();
 	bool isDeviceSuitable(VkPhysicalDevice device);
@@ -106,4 +122,8 @@ private:
 
 	std::vector<VkImageView> swapChainImageViews;
 
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 };
