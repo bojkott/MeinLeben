@@ -1,5 +1,5 @@
 
-#include "C:\Users\mocr14\Documents\MeinLeben\gl_testbench\Material.h"
+#include "../Material.h"
 class MaterialVulkan :
 	public Material
 {
