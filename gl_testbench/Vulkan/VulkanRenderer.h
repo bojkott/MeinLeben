@@ -99,4 +99,11 @@ private:
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void createSurface();
+	//Create image views from the avalible swapchain
+	void createImageViews();
+	//Destoys the image views
+	void cleanup();
+
+	std::vector<VkImageView> swapChainImageViews;
+
 };
