@@ -23,12 +23,10 @@ VkResult VulkanRenderer::CreateDebugReportCallbackEXT(
 	const VkAllocationCallbacks * pAllocator, VkDebugReportCallbackEXT * pCallback)
 {
 	auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
-	if (func != nullptr) {
+	if (func != nullptr)
 		return func(instance, pCreateInfo, pAllocator, pCallback);
-	}
-	else {
+	else
 		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
 }
 
 void VulkanRenderer::DestroyDebugReportCallbackEXT(
@@ -36,9 +34,8 @@ void VulkanRenderer::DestroyDebugReportCallbackEXT(
 	const VkAllocationCallbacks * pAllocator)
 {
 	auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
-	if (func != nullptr) {
+	if (func != nullptr)
 		func(instance, callback, pAllocator);
-	}
 }
 
 
@@ -120,6 +117,7 @@ void VulkanRenderer::present()
 int VulkanRenderer::shutdown()
 {
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	vkDestroyDevice(device, nullptr);
 	SDL_Quit();
@@ -160,13 +158,15 @@ void VulkanRenderer::initVulkan()
 {
 	createInstance();
 	setupDebugCallback();
+	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 }
 
 void VulkanRenderer::createInstance()
 {
-	if (enableValidationLayers && !checkValidationLayersSupport()) {
+	if (enableValidationLayers && !checkValidationLayersSupport()) 
+	{
 		fprintf(stderr, "Validation layer requested, but not available!");
 		exit(-1);
 	}
@@ -208,43 +208,44 @@ void VulkanRenderer::createInstance()
 
 void VulkanRenderer::createLogicalDevice()
 {
-	// Saknar en struct
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-	VkDeviceQueueCreateInfo queueCreateInfo = {};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
-	float queuePriority = 1.0f; // Priority of the queue, required even
-								// if we only have one queue
-	queueCreateInfo.pQueuePriorities = &queuePriority;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<int> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
 
-	// Structs defining available features of gfx
+	float queuePriority = 1.0f;
+	for (int queueFamily : uniqueQueueFamilies)
+	{
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	
-
-	// Configuration of device
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = &queueCreateInfo;
-	createInfo.queueCreateInfoCount = 1;
+	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 	createInfo.pEnabledFeatures = &deviceFeatures;
 	createInfo.enabledExtensionCount = 0;
 
 	if (enableValidationLayers)
 	{
-		createInfo.enabledLayerCount = 
-				static_cast<uint32_t>(validationLayers.size());
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		createInfo.ppEnabledLayerNames = validationLayers.data();
-
 	}
 	else
-	{
 		createInfo.enabledLayerCount = 0;
-	}
-
 
 	if (FAILED(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)))
 		throw std::runtime_error("failed to create logical device");
+
+	vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
+	vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
 }
 
 
@@ -258,7 +259,8 @@ void VulkanRenderer::setupDebugCallback()
 	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 	createInfo.pfnCallback = debugCallback;
 
-	if (FAILED(CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback))) {
+	if (FAILED(CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback))) 
+	{
 		fprintf(stderr, "Failed to set up debug callback\n");
 		exit(-1);
 	}
@@ -275,16 +277,17 @@ bool VulkanRenderer::checkValidationLayersSupport()
 	for (const char* layerName : validationLayers) {
 		bool layerFound = false;
 
-		for (const auto& layerProperties : availableLayers) {
-			if (strcmp(layerName, layerProperties.layerName) == 0) {
+		for (const auto& layerProperties : availableLayers) 
+		{
+			if (strcmp(layerName, layerProperties.layerName) == 0) 
+			{
 				layerFound = true;
 				break;
 			}
 		}
 
-		if (!layerFound) {
+		if (!layerFound)
 			return false;
-		}
 	}
 
 	return true;
@@ -322,7 +325,8 @@ void VulkanRenderer::pickPhysicalDevice()
 
 	for (const auto& device : devices)
 	{
-		if (isDeviceSuitable(device)) {
+		if (isDeviceSuitable(device)) 
+		{
 			physicalDevice = device;
 			break;
 		}
@@ -357,16 +361,29 @@ VulkanRenderer::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalD
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
 	int i = 0;
-	for (const auto& queueFamily : queueFamilies) {
-		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+	VkBool32 presentSupport = false;
+	for (const auto& queueFamily : queueFamilies) 
+	{
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
 			indices.graphicsFamily = i;
-		}
 
-		if (indices.isComplete()) {
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+		if (queueFamily.queueCount > 0 && presentSupport)
+			indices.presentFamily = i;
+
+		if (indices.isComplete()) 
 			break;
-		}
 
 		i++;
 	}
 	return indices;
+}
+
+void VulkanRenderer::createSurface()
+{
+	if(SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE)
+	{
+		fprintf(stderr, "Failed to create window surface!\n");
+		exit(-1);
+	}
 }
