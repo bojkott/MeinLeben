@@ -116,12 +116,15 @@ void VulkanRenderer::present()
 
 int VulkanRenderer::shutdown()
 {
-	cleanup();
+	for (auto imageView : swapChainImageViews) 
+		vkDestroyImageView(device, imageView, nullptr);
+
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
 	vkDestroySwapchainKHR(device, swapChain, nullptr);
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDevice(device, nullptr);
+
+	vkDestroyInstance(instance, nullptr);
 	SDL_Quit();
 	return 0;
 }
@@ -165,6 +168,7 @@ void VulkanRenderer::initVulkan()
 	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
+	createSwapChain();
 	createImageViews();
 }
 
@@ -249,8 +253,10 @@ void VulkanRenderer::createLogicalDevice()
 		createInfo.enabledLayerCount = 0;
 
 	if (FAILED(vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)))
-		throw std::runtime_error("failed to create logical device");
-
+	{
+		fprintf(stderr, "failed to create logical device");
+		exit(-1);
+	}
 	vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
 	vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
 }
@@ -303,9 +309,19 @@ void VulkanRenderer::createSwapChain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create swap chain!");
+	if (FAILED(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain)))
+	{
+		fprintf(stderr, "failed to create swap chain!");
+		exit(-1);
 	}
+
+
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+	swapChainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+
+	swapChainImageFormat = surfaceFormat.format;
+	swapChainExtent = extent;
 }
 
 
@@ -483,19 +499,13 @@ void VulkanRenderer::createImageViews()
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
-		if (vkCreateImage(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+		if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
 		{
-			throw std::runtime_error("Failed to create image views!");
+			fprintf(stderr, "Failed to create image views!\n");
+			exit(-1);
 		}
 	}
 	
-}
-
-void VulkanRenderer::cleanup()
-{
-	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(device, imageView, nullptr);
-	}
 }
 
 void VulkanRenderer::createSurface()
@@ -511,6 +521,7 @@ VulkanRenderer::SwapChainSupportDetails VulkanRenderer::querySwapChainSupport(Vk
 {
 	SwapChainSupportDetails details;
 	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
 	if (formatCount != 0)
@@ -552,14 +563,15 @@ VkPresentModeKHR VulkanRenderer::chooseSwapPresentMode(const std::vector<VkPrese
 
 VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
 {
-	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+	
+	if (capabilities.currentExtent.width != UINT32_MAX) {
 		return capabilities.currentExtent;
 	}
 	else {
 		VkExtent2D actualExtent = { width, height };
 
-		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
-		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+		actualExtent.width = max(capabilities.minImageExtent.width, min(capabilities.maxImageExtent.width, actualExtent.width));
+		actualExtent.height = max(capabilities.minImageExtent.height, min(capabilities.maxImageExtent.height, actualExtent.height));
 
 		return actualExtent;
 	}

@@ -95,12 +95,17 @@ private:
 	VkDebugReportCallbackEXT callback;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device;
-	VkSwapchainKHR swapChain;
 	VkQueue graphicsQueue;
 	uint32_t height;
 	uint32_t width;
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
+
+	std::vector<VkImageView> swapChainImageViews;
+	VkSwapchainKHR swapChain;
+	std::vector<VkImage> swapChainImages;
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
@@ -117,10 +122,6 @@ private:
 	void createSurface();
 	//Create image views from the avalible swapchain
 	void createImageViews();
-	//Destoys the image views
-	void cleanup();
-
-	std::vector<VkImageView> swapChainImageViews;
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
