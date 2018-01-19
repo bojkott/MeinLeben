@@ -31,6 +31,16 @@ VkResult VulkanRenderer::CreateDebugReportCallbackEXT(
 	}
 }
 
+void VulkanRenderer::DestroyDebugReportCallbackEXT(
+	VkInstance instance, VkDebugReportCallbackEXT callback,
+	const VkAllocationCallbacks * pAllocator)
+{
+	auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+	if (func != nullptr) {
+		func(instance, callback, pAllocator);
+	}
+}
+
 
 VulkanRenderer::VulkanRenderer()
 {
@@ -109,6 +119,7 @@ void VulkanRenderer::present()
 
 int VulkanRenderer::shutdown()
 {
+	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	SDL_Quit();
 	return 0;

@@ -63,9 +63,17 @@ private:
 		VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
 		const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback);
 
+	void DestroyDebugReportCallbackEXT(
+		VkInstance instance, VkDebugReportCallbackEXT callback,
+		const VkAllocationCallbacks* pAllocator);
+
+
 	SDL_Window* window;
 	VkInstance instance;
 	VkDebugReportCallbackEXT callback;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	VkDevice device;
+	VkQueue graphicsQueue;
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
