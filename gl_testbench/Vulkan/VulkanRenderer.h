@@ -47,7 +47,7 @@ private:
 	#define FAILED(x) x != VK_SUCCESS
 
 
-	struct QueueFamilityIndicies {
+	struct QueueFamilyIndices {
 		int graphicsFamily = -1;
 
 		bool isComplete()
@@ -95,6 +95,6 @@ private:
 	std::vector<const char*> getRequiredExtensions();
 	void pickPhysicalDevice();
 	bool isDeviceSuitable(VkPhysicalDevice device);
-	QueueFamilityIndicies findQueueFamilies(VkPhysicalDevice device);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 };

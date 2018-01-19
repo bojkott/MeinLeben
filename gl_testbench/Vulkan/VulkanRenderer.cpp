@@ -159,9 +159,9 @@ void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
 void VulkanRenderer::initVulkan()
 {
 	createInstance();
-	createLogicalDevice();
 	setupDebugCallback();
 	pickPhysicalDevice();
+	createLogicalDevice();
 }
 
 void VulkanRenderer::createInstance()
@@ -209,11 +209,11 @@ void VulkanRenderer::createInstance()
 void VulkanRenderer::createLogicalDevice()
 {
 	// Saknar en struct
-	// QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 	VkDeviceQueueCreateInfo queueCreateInfo = {};
 	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	//queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
 	float queuePriority = 1.0f; // Priority of the queue, required even
 								// if we only have one queue
 	queueCreateInfo.pQueuePriorities = &queuePriority;
@@ -337,7 +337,7 @@ void VulkanRenderer::pickPhysicalDevice()
 
 bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device)
 {
-	QueueFamilityIndicies indices = findQueueFamilies(device);
+	QueueFamilyIndices indices = findQueueFamilies(device);
 	return indices.isComplete();
 	/*VkPhysicalDeviceProperties deviceProperties;
 	VkPhysicalDeviceFeatures deviceFeatures;
@@ -347,9 +347,9 @@ bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device)
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;*/
 }
 
-VulkanRenderer::QueueFamilityIndicies VulkanRenderer::findQueueFamilies(VkPhysicalDevice device)
+VulkanRenderer::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalDevice device)
 {
-	QueueFamilityIndicies indices;
+	QueueFamilyIndices indices;
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
