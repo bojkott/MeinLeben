@@ -5,6 +5,7 @@
 
 
 #pragma comment(lib, "vulkan-1.lib")
+#pragma comment(lib, "shaderc_combined.lib") //needs debug build. and shizzle
 #pragma comment(lib,"SDL2.lib")
 #pragma comment(lib,"SDL2main.lib")
 
@@ -15,6 +16,9 @@ class VulkanRenderer :
 	public Renderer
 {
 public:
+
+	static VkDevice device;
+
 	VulkanRenderer();
 	~VulkanRenderer();
 
@@ -94,7 +98,6 @@ private:
 	VkInstance instance;
 	VkDebugReportCallbackEXT callback;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	VkDevice device;
 	VkQueue graphicsQueue;
 	uint32_t height;
 	uint32_t width;

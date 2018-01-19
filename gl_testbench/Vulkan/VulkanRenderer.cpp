@@ -2,7 +2,9 @@
 #include <SDL_vulkan.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "MaterialVulkan.h"
 
+VkDevice VulkanRenderer::device;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -50,7 +52,7 @@ VulkanRenderer::~VulkanRenderer()
 
 Material * VulkanRenderer::makeMaterial(const std::string & name)
 {
-	return nullptr;
+	return new MaterialVulkan(name);
 }
 
 Mesh * VulkanRenderer::makeMesh()
@@ -80,12 +82,12 @@ RenderState * VulkanRenderer::makeRenderState()
 
 std::string VulkanRenderer::getShaderPath()
 {
-	return std::string();
+	return std::string("..\\assets\\GL45\\");
 }
 
 std::string VulkanRenderer::getShaderExtension()
 {
-	return std::string();
+	return std::string(".glsl");
 }
 
 ConstantBuffer * VulkanRenderer::makeConstantBuffer(std::string NAME, unsigned int location)
