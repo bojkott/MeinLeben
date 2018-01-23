@@ -206,7 +206,7 @@ int initialiseTestbench()
 		
 		materials.push_back(m);
 	}
-	/*
+	
 	// one technique with wireframe
 	RenderState* renderState1 = renderer->makeRenderState();
 	renderState1->setWireFrame(true);
@@ -216,7 +216,7 @@ int initialiseTestbench()
 	techniques.push_back(renderer->makeTechnique(materials[1], renderer->makeRenderState()));
 	techniques.push_back(renderer->makeTechnique(materials[2], renderer->makeRenderState()));
 	techniques.push_back(renderer->makeTechnique(materials[3], renderer->makeRenderState()));
-
+	/*
 	// create texture
 	Texture2D* fatboy = renderer->makeTexture2D();
 	fatboy->loadFromFile("../assets/textures/fatboy.png");
@@ -267,18 +267,18 @@ int initialiseTestbench()
 void shutdown() {
 	// shutdown.
 	// delete dynamic objects
-	//for (auto m : materials)
-	//{
-	//	delete(m);
-	//}
-	//for (auto t : techniques)
-	//{
-	//	delete(t);
-	//}
-	//for (auto m : scene)
-	//{
-	//	delete(m);
-	//};
+	for (auto m : materials)
+	{
+		delete(m);
+	}
+	for (auto t : techniques)
+	{
+		delete(t);
+	}
+	for (auto m : scene)
+	{
+		delete(m);
+	};
 	//assert(pos->refCount() == 0);
 	//delete pos;
 	//assert(nor->refCount() == 0);
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 {
 	renderer = Renderer::makeRenderer(Renderer::BACKEND::VULKAN);
 	renderer->initialize(800,600);
-	renderer->setWinTitle("OpenGL");
+	renderer->setWinTitle("Vulkan");
 	renderer->setClearColor(0.0, 0.1, 0.1, 1.0);
 	initialiseTestbench();
 	run();

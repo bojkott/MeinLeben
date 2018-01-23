@@ -9,4 +9,4 @@
 #define DIFFUSE_TINT 6
 #define DIFFUSE_TINT_NAME "DiffuseColor"
 
-#define DIFFUSE_SLOT 0
+#define DIFFUSE_SLOT 7

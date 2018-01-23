@@ -175,7 +175,9 @@
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vulkan\MaterialVulkan.cpp" />
     <ClCompile Include="Vulkan\MeshVulkan.cpp" />
+    <ClCompile Include="Vulkan\RenderStateVulkan.cpp" />
     <ClCompile Include="Vulkan\Sampler2DVulkan.cpp" />
+    <ClCompile Include="Vulkan\TechniqueVulkan.cpp" />
     <ClCompile Include="Vulkan\Texture2DVulkan.cpp" />
     <ClCompile Include="Vulkan\TransformVulkan.cpp" />
     <ClCompile Include="Vulkan\VertexBufferVulkan.cpp" />
@@ -212,6 +214,7 @@
     <ClInclude Include="Vulkan\RenderStateVulkan.h" />
     <ClInclude Include="Vulkan\ResourceBindingsVulkan.h" />
     <ClInclude Include="Vulkan\Sampler2DVulkan.h" />
+    <ClInclude Include="Vulkan\TechniqueVulkan.h" />
     <ClInclude Include="Vulkan\Texture2DVulkan.h" />
     <ClInclude Include="Vulkan\TransformVulkan.h" />
     <ClInclude Include="Vulkan\VertexBufferVulkan.h" />

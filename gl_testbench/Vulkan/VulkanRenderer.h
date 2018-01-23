@@ -23,6 +23,8 @@ class VulkanRenderer :
 public:
 
 	static VkDevice device;
+	static VkExtent2D swapChainExtent;
+	static VkFormat swapChainImageFormat;
 
 	VulkanRenderer();
 	~VulkanRenderer();
@@ -109,15 +111,10 @@ private:
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
-	VkViewport viewport;
-	VkRect2D scissor;
-
-
 	std::vector<VkImageView> swapChainImageViews;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
+	
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
@@ -139,9 +136,5 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-	VkPipelineLayout pipelineLayout;
 
-	void createRenderPass();
-	void createGraphicsPipeline();
-	void createFixedFunctions();
 };

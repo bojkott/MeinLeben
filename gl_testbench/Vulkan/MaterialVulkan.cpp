@@ -10,15 +10,20 @@
 #include <shaderc\shaderc.hpp>
 #include <iostream>
 #include "VulkanRenderer.h"
+#include "../IA.h"
 
 MaterialVulkan::MaterialVulkan(const std::string& name)
 {
 	isValid = false;
+
 }
 
 
 MaterialVulkan::~MaterialVulkan()
 {
+	vkDestroyDescriptorSetLayout(VulkanRenderer::device, descriptorSetLayout, nullptr);
+	removeShader(ShaderType::VS);
+	removeShader(ShaderType::PS);
 }
 
 void MaterialVulkan::setShader(const std::string & shaderFileName, ShaderType type)
@@ -98,6 +103,14 @@ int MaterialVulkan::enable()
 void MaterialVulkan::disable()
 {
 }
+VkPipelineShaderStageCreateInfo * MaterialVulkan::getShaderStages()
+{
+	return shaderStages;
+}
+VkDescriptorSetLayout * MaterialVulkan::getDescriptorSetLayout()
+{
+	return &descriptorSetLayout;
+}
 int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 {
 	// open the file and read it to a string "shaderText"
@@ -139,8 +152,7 @@ int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 
 	shaderc::Compiler spirVCompiler;
 	shaderc::CompileOptions options;
-	options.SetAutoBindUniforms(true);
-	shaderc::SpvCompilationResult result = spirVCompiler.CompileGlslToSpv(expandedShader, shaderType, shaderFileNames[type].c_str(), options);
+	shaderc::SpvCompilationResult result = spirVCompiler.CompileGlslToSpv(expandedShader, shaderType, shaderFileNames[type].c_str());
 	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 	{
 		errString = "Cannot compile shader " + shaderFileNames[type] + "\n error: " + result.GetErrorMessage();
@@ -148,10 +160,10 @@ int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 	}
 
 	std::vector<uint32_t> binaryShader(result.cbegin(), result.cend());
-	binaryShader.resize(binaryShader.size() + (4 - binaryShader.size() % 4)); //pad spir-v binary to be multiple of 4.
+	//binaryShader.resize(binaryShader.size() + (4 - binaryShader.size() % 4)); //pad spir-v binary to be multiple of 4.
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = binaryShader.size();
+	createInfo.codeSize = binaryShader.size() * sizeof(uint32_t);
 	createInfo.pCode = binaryShader.data();
 	
 	VkShaderModule shaderModule;
@@ -163,8 +175,63 @@ int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 	
 	shaderObjects[(int)type] = shaderModule;
 	
+	createDescriptorSets();
 
 	return 0;
+}
+
+void MaterialVulkan::createDescriptorSets()
+{
+	std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = POSITION;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = NORMAL;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = TEXTCOORD;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = TRANSLATION;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = DIFFUSE_TINT;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	//texture
+	uboLayoutBinding.binding = DIFFUSE_SLOT;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+	bindings.push_back(uboLayoutBinding);
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = bindings.size();
+	layoutInfo.pBindings = bindings.data();
+
+
+	if (FAILED(vkCreateDescriptorSetLayout(VulkanRenderer::device, &layoutInfo, nullptr, &descriptorSetLayout)))
+	{
+		fprintf(stderr, "failed to create descriptor set layout!\n");
+		exit(-1);
+	}
+
 }
 
 std::string MaterialVulkan::expandShaderText(std::string & shaderText, ShaderType type)
