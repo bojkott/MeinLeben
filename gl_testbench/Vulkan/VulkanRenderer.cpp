@@ -580,6 +580,14 @@ VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & cap
 	}
 }
 
+void VulkanRenderer::createRenderPass()
+{
+}
+
+void VulkanRenderer::createGraphicsPipeline()
+{
+}
+
 void VulkanRenderer::createFixedFunctions()
 {
 	viewport.x = 0.0f;

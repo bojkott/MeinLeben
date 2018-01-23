@@ -141,5 +141,7 @@ private:
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	VkPipelineLayout pipelineLayout;
 
+	void createRenderPass();
+	void createGraphicsPipeline();
 	void createFixedFunctions();
 };
