@@ -109,6 +109,10 @@ private:
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
+	VkViewport viewport;
+	VkRect2D scissor;
+
+
 	std::vector<VkImageView> swapChainImageViews;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -135,4 +139,6 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	void createFixedFunctions();
 };
