@@ -138,18 +138,22 @@ int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 	}
 
 	shaderc::Compiler spirVCompiler;
-	shaderc::SpvCompilationResult result = spirVCompiler.CompileGlslToSpv(expandedShader, shaderType, shaderFileNames[type].c_str());
+	shaderc::CompileOptions options;
+	options.SetAutoBindUniforms(true);
+	shaderc::SpvCompilationResult result = spirVCompiler.CompileGlslToSpv(expandedShader, shaderType, shaderFileNames[type].c_str(), options);
 	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 	{
 		errString = "Cannot compile shader " + shaderFileNames[type] + "\n error: " + result.GetErrorMessage();
 		return -1;
 	}
+
 	std::vector<uint32_t> binaryShader(result.cbegin(), result.cend());
+	binaryShader.resize(binaryShader.size() + (4 - binaryShader.size() % 4)); //pad spir-v binary to be multiple of 4.
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.codeSize = binaryShader.size();
 	createInfo.pCode = binaryShader.data();
-
+	
 	VkShaderModule shaderModule;
 	if (FAILED(vkCreateShaderModule(VulkanRenderer::device, &createInfo, nullptr, &shaderModule)))
 	{
