@@ -5,7 +5,12 @@
 
 
 #pragma comment(lib, "vulkan-1.lib")
-#pragma comment(lib, "shaderc_combined.lib") //needs debug build. and shizzle
+#ifdef _DEBUG
+	#pragma comment(lib, "shaderc_combined_debug.lib")
+#else
+	#pragma comment(lib, "shaderc_combined.lib")
+#endif
+
 #pragma comment(lib,"SDL2.lib")
 #pragma comment(lib,"SDL2main.lib")
 
