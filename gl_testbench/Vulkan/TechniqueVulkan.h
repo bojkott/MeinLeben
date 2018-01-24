@@ -7,12 +7,17 @@
 class TechniqueVulkan : public Technique
 {
 public:
+	static TechniqueVulkan* currentTechnique;
+
 	TechniqueVulkan(Material* m, RenderState* r);
 	~TechniqueVulkan();
 
 	void enable(Renderer* renderer);
 
+	VkDescriptorSet descriptorSet;
+
 private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
+	
 };

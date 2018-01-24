@@ -106,7 +106,7 @@ void updateScene()
 				i * (-1.0 / TOTAL_PLACES),
 				0.0
 			};
-			scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
+			//scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
 		}
 		// just to make them move...
 		shift+=max(TOTAL_TRIS / 1000.0,TOTAL_TRIS / 100.0);
@@ -226,7 +226,7 @@ int initialiseTestbench()
 
 	textures.push_back(fatboy);
 	samplers.push_back(sampler);
-
+	*/
 	// pre-allocate one single vertex buffer for ALL triangles
 	pos = renderer->makeVertexBuffer(TOTAL_TRIS * sizeof(triPos), VertexBuffer::DATA_USAGE::STATIC);
 	nor = renderer->makeVertexBuffer(TOTAL_TRIS * sizeof(triNor), VertexBuffer::DATA_USAGE::STATIC);
@@ -236,7 +236,7 @@ int initialiseTestbench()
 	for (int i = 0; i < TOTAL_TRIS; i++) {
 
 		Mesh* m = renderer->makeMesh();
-
+		
 		constexpr auto numberOfPosElements = std::extent<decltype(triPos)>::value;
 		size_t offset = i * sizeof(triPos);
 		pos->setData(triPos, sizeof(triPos), offset);
@@ -252,15 +252,18 @@ int initialiseTestbench()
 		uvs->setData(triUV, sizeof(triUV), offset);
 		m->addIAVertexBufferBinding(uvs, offset, numberOfUVElements , sizeof(float2), TEXTCOORD);
 
+		/*
 		// we can create a constant buffer outside the material, for example as part of the Mesh.
 		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
+		*/
 		
 		m->technique = techniques[ i % 4];
+		/*
 		if (i % 4 == 2)
 			m->addTexture(textures[0], DIFFUSE_SLOT);
-
+		*/
 		scene.push_back(m);
-	}*/
+	}
 	return 0;
 }
 

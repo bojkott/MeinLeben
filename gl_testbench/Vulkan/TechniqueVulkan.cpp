@@ -2,6 +2,8 @@
 
 #include "VulkanRenderer.h"
 
+TechniqueVulkan* TechniqueVulkan::currentTechnique;
+
 TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r)
 {
 
@@ -18,8 +20,6 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-	
 
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
@@ -124,6 +124,20 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 		fprintf(stderr, "failed to create graphics pipeline!\n");
 		exit(-1);
 	}
+
+	//Descriptor sets
+	VkDescriptorSetLayout layouts[] = { *((MaterialVulkan*)m)->getDescriptorSetLayout() };
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = VulkanRenderer::descriptorPool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = layouts;
+
+	if (FAILED(vkAllocateDescriptorSets(VulkanRenderer::device, &allocInfo, &descriptorSet))) {
+		fprintf(stderr, "failed to allocate descriptor set!\n");
+		exit(-1);
+	}
+
 }
 
 TechniqueVulkan::~TechniqueVulkan()
@@ -134,5 +148,7 @@ TechniqueVulkan::~TechniqueVulkan()
 
 void TechniqueVulkan::enable(Renderer * renderer)
 {
+	currentTechnique = this;
 	vkCmdBindPipeline(((VulkanRenderer*)renderer)->getCurrentBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	vkCmdBindDescriptorSets(((VulkanRenderer*)renderer)->getCurrentBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 }

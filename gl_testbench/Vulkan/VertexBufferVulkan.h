@@ -12,7 +12,8 @@ public:
 	size_t getSize();
 
 private:
+	size_t bufferSize;
 	VkBuffer buffer;
-	VkDeviceMemory deviceMemory;
-
+	VkDeviceMemory bufferMemory;
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };

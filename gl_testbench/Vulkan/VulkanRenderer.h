@@ -26,6 +26,8 @@ public:
 	static VkExtent2D swapChainExtent;
 	static VkFormat swapChainImageFormat;
 	static VkRenderPass renderPass;
+	static VkPhysicalDevice physicalDevice;
+	static VkDescriptorPool descriptorPool;
 
 	VulkanRenderer();
 	~VulkanRenderer();
@@ -107,7 +109,6 @@ private:
 	SDL_Window* window;
 	VkInstance instance;
 	VkDebugReportCallbackEXT callback;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkQueue graphicsQueue;
 	uint32_t height;
 	uint32_t width;
@@ -121,7 +122,7 @@ private:
 	
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-	VkCommandBuffer& currentBuffer;
+	VkCommandBuffer* currentBuffer;
 
 	VkSemaphore imageAvailableSemaphore;
 	VkSemaphore renderFinishedSemaphore;
@@ -149,6 +150,7 @@ private:
 	void createCommandPool();
 	void createFrameBufffers();
 	void createSemaphores();
+	void createDescriptorPool();
 
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);

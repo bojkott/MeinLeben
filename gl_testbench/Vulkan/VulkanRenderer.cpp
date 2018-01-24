@@ -5,12 +5,15 @@
 #include "MaterialVulkan.h"
 #include "TechniqueVulkan.h"
 #include "RenderStateVulkan.h"
+#include "VertexBufferVulkan.h"
 #include "../Mesh.h"
 
 VkDevice VulkanRenderer::device;
 VkExtent2D VulkanRenderer::swapChainExtent;
 VkFormat VulkanRenderer::swapChainImageFormat;
 VkRenderPass VulkanRenderer::renderPass;
+VkPhysicalDevice VulkanRenderer::physicalDevice = VK_NULL_HANDLE;
+VkDescriptorPool VulkanRenderer::descriptorPool;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -63,12 +66,12 @@ Material * VulkanRenderer::makeMaterial(const std::string & name)
 
 Mesh * VulkanRenderer::makeMesh()
 {
-	return nullptr;
+	return new Mesh();
 }
 
 VertexBuffer * VulkanRenderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_USAGE usage)
 {
-	return nullptr;
+	return new VertexBufferVulkan(size, usage);
 }
 
 Texture2D * VulkanRenderer::makeTexture2D()
@@ -164,6 +167,9 @@ void VulkanRenderer::present()
 int VulkanRenderer::shutdown()
 {
 	vkDeviceWaitIdle(device);
+
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+
 	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 	vkDestroyCommandPool(device, commandPool, nullptr);
@@ -228,7 +234,7 @@ void VulkanRenderer::submit(Mesh * mesh)
 
 void VulkanRenderer::frame()
 {
-	currentBuffer = commandBuffers[0];
+	currentBuffer = &commandBuffers[0];
 	for (auto mesh : drawList)
 	{
 		mesh->technique->enable(this);
@@ -243,23 +249,27 @@ void VulkanRenderer::frame()
 		{
 			mesh->bindIAVertexBuffer(element.first);
 		}
-		mesh->txBuffer->bind(mesh->technique->getMaterial());
-		vkCmdDraw(currentBuffer, numberElements*3, 1, 0, 0);
+		//mesh->txBuffer->bind(mesh->technique->getMaterial());
+		vkCmdDraw(*currentBuffer, numberElements*3, 1, 0, 0);
 	}
 	drawList.clear();
 
-
-	vkCmdEndRenderPass(currentBuffer);
-	if (FAILED(vkEndCommandBuffer(currentBuffer)))
+	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
-		fprintf(stderr, "failed to record command buffer!\n");
-		exit(-1);
+		vkCmdEndRenderPass(commandBuffers[i]);
+		if (FAILED(vkEndCommandBuffer(commandBuffers[i])))
+		{
+			fprintf(stderr, "failed to record command buffer!\n");
+			exit(-1);
+		}
 	}
+
+
 }
 
 VkCommandBuffer & VulkanRenderer::getCurrentBuffer()
 {
-	return currentBuffer;
+	return *currentBuffer;
 }
 
 void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
@@ -289,6 +299,8 @@ void VulkanRenderer::initVulkan()
 	createCommandPool();
 	createCommandBuffers();
 	createSemaphores();
+
+	createDescriptorPool();
 }
 
 void VulkanRenderer::createInstance()
@@ -728,6 +740,43 @@ void VulkanRenderer::createSemaphores()
 		FAILED(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore)))
 	{
 		fprintf(stderr, "failed to create semaphores!\n");
+		exit(-1);
+	}
+}
+
+void VulkanRenderer::createDescriptorPool()
+{
+
+	/*
+		The poolSize contains the required amount of each dataType in the shaders times the number of techniques.
+		Each technique has its own descriptorSet so the poolInfo.maxSets need to be >= 4
+	*/
+
+	unsigned int numberOfTechniques = 4;
+
+	std::vector<VkDescriptorPoolSize> poolSizes;
+	VkDescriptorPoolSize poolSize = {};
+	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	poolSize.descriptorCount = 3* numberOfTechniques;
+	poolSizes.push_back(poolSize);
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = 2* numberOfTechniques;
+	poolSizes.push_back(poolSize);
+	poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSize.descriptorCount = 1* numberOfTechniques;
+	poolSizes.push_back(poolSize);
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = poolSizes.size();
+	poolInfo.pPoolSizes = poolSizes.data();
+
+	poolInfo.maxSets = numberOfTechniques;
+
+
+	if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
+	{
+		fprintf(stderr, "failed to create descriptor pool!\n");
 		exit(-1);
 	}
 }
