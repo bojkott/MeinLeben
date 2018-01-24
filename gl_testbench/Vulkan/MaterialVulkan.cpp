@@ -21,7 +21,6 @@ MaterialVulkan::MaterialVulkan(const std::string& name)
 
 MaterialVulkan::~MaterialVulkan()
 {
-	vkDestroyDescriptorSetLayout(VulkanRenderer::device, descriptorSetLayout, nullptr);
 	removeShader(ShaderType::VS);
 	removeShader(ShaderType::PS);
 }
@@ -107,10 +106,7 @@ VkPipelineShaderStageCreateInfo * MaterialVulkan::getShaderStages()
 {
 	return shaderStages;
 }
-VkDescriptorSetLayout * MaterialVulkan::getDescriptorSetLayout()
-{
-	return &descriptorSetLayout;
-}
+
 int MaterialVulkan::compileShader(ShaderType type, std::string & errString)
 {
 	// open the file and read it to a string "shaderText"

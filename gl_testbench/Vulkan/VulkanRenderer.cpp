@@ -168,8 +168,8 @@ void VulkanRenderer::present()
 int VulkanRenderer::shutdown()
 {
 	vkDeviceWaitIdle(device);
-
-	vkDestroyPipelineLayout(VulkanRenderer::device, pipelineLayout, nullptr);
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
 	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
@@ -304,6 +304,7 @@ void VulkanRenderer::initVulkan()
 	createSemaphores();
 
 	createDescriptorSetLayout();
+	createPipelineLayout();
 	createDescriptorPool();
 	createDescriptorSet();
 }
