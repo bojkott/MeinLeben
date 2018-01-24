@@ -252,10 +252,10 @@ int initialiseTestbench()
 		uvs->setData(triUV, sizeof(triUV), offset);
 		m->addIAVertexBufferBinding(uvs, offset, numberOfUVElements , sizeof(float2), TEXTCOORD);
 
-		/*
+		
 		// we can create a constant buffer outside the material, for example as part of the Mesh.
 		m->txBuffer = renderer->makeConstantBuffer(std::string(TRANSLATION_NAME), TRANSLATION);
-		*/
+		
 		
 		m->technique = techniques[ i % 4];
 		/*

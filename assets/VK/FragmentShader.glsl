@@ -27,7 +27,6 @@ void main () {
 	#endif
 
 	fragment_color = col;// *vec4(diffuseTint.rgb, 1.0);
-
 	return;
 	
 //	#ifdef NORMAL

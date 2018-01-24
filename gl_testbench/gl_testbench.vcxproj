@@ -173,6 +173,7 @@
     <ClCompile Include="Technique.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Vulkan\ConstantBufferVulkan.cpp" />
     <ClCompile Include="Vulkan\MaterialVulkan.cpp" />
     <ClCompile Include="Vulkan\MeshVulkan.cpp" />
     <ClCompile Include="Vulkan\RenderStateVulkan.cpp" />

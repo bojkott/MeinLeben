@@ -6,6 +6,7 @@
 #include "TechniqueVulkan.h"
 #include "RenderStateVulkan.h"
 #include "VertexBufferVulkan.h"
+#include "ConstantBufferVulkan.h"
 #include "../Mesh.h"
 
 VkDevice VulkanRenderer::device;
@@ -102,7 +103,7 @@ std::string VulkanRenderer::getShaderExtension()
 
 ConstantBuffer * VulkanRenderer::makeConstantBuffer(std::string NAME, unsigned int location)
 {
-	return nullptr;
+	return new ConstantBufferVulkan(NAME, location);
 }
 
 Technique * VulkanRenderer::makeTechnique(Material* m, RenderState* r)
@@ -236,33 +237,34 @@ void VulkanRenderer::submit(Mesh * mesh)
 
 void VulkanRenderer::frame()
 {
-	currentBuffer = &commandBuffers[0];
-
-	if(drawList.size() > 0)
-	for (auto element : drawList[0]->geometryBuffers)
-	{
-		drawList[0]->bindIAVertexBuffer(element.first);
-	}
-	vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-	for (auto mesh : drawList)
-	{
-		mesh->technique->enable(this);
-		size_t numberElements = mesh->geometryBuffers[0].numElements;
-		for (auto t : mesh->textures)
+	if (drawList.size() > 0)
+		for (auto element : drawList[0]->geometryBuffers)
 		{
-			// we do not really know here if the sampler has been
-			// defined in the shader.
-			t.second->bind(t.first);
+			drawList[0]->bindIAVertexBuffer(element.first);
 		}
-
-		//mesh->txBuffer->bind(mesh->technique->getMaterial());
-		
-		vkCmdDraw(*currentBuffer, numberElements*3, 1, 0, 0);
-	}
-	drawList.clear();
 
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
+		currentBuffer = &commandBuffers[i];
+
+		vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		for (auto mesh : drawList)
+		{
+			mesh->technique->enable(this);
+			size_t numberElements = mesh->geometryBuffers[0].numElements;
+			for (auto t : mesh->textures)
+			{
+				// we do not really know here if the sampler has been
+				// defined in the shader.
+				t.second->bind(t.first);
+			}
+
+			//mesh->txBuffer->bind(mesh->technique->getMaterial());
+
+			vkCmdDraw(*currentBuffer, 3, 1, 0, 0);
+		}
+
+
 		vkCmdEndRenderPass(commandBuffers[i]);
 		if (FAILED(vkEndCommandBuffer(commandBuffers[i])))
 		{
@@ -270,6 +272,10 @@ void VulkanRenderer::frame()
 			exit(-1);
 		}
 	}
+	drawList.clear();
+		
+
+	
 
 
 }

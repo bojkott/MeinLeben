@@ -39,6 +39,8 @@ void main()
 	#ifdef TEXTCOORD
 		uv_out = uv_in[gl_VertexIndex];
 	#endif
-
-	gl_Position = position_in[gl_VertexIndex];// +translate;
+	gl_Position = vec4(gl_VertexIndex/2.0f, gl_VertexIndex/2.0f, 0.0f, 1.0f);
+	if(gl_VertexIndex == 2)
+		gl_Position = vec4(0, 0.5f, 0.0f, 1.0f);
+	//gl_Position = position_in[gl_VertexIndex];// +translate;
 }
