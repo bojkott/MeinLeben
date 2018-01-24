@@ -123,8 +123,12 @@ void VulkanRenderer::present()
 
 int VulkanRenderer::shutdown()
 {
+	for (auto framebuffer : swapChainFramebuffers)
+	{
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
 	vkDestroyRenderPass(device, renderPass, nullptr);
-	for (auto imageView : swapChainImageViews) 
+	for (auto imageView : swapChainImageViews)
 		vkDestroyImageView(device, imageView, nullptr);
 
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
@@ -180,11 +184,13 @@ void VulkanRenderer::initVulkan()
 	createImageViews();
 
 	createRenderPass();
+
+	createCommandPool();
 }
 
 void VulkanRenderer::createInstance()
 {
-	if (enableValidationLayers && !checkValidationLayersSupport()) 
+	if (enableValidationLayers && !checkValidationLayersSupport())
 	{
 		fprintf(stderr, "Validation layer requested, but not available!");
 		exit(-1);
@@ -198,7 +204,7 @@ void VulkanRenderer::createInstance()
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_0;
 
-	
+
 
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -216,7 +222,7 @@ void VulkanRenderer::createInstance()
 	}
 	else
 		createInfo.enabledLayerCount = 0;
-	
+
 
 	if (FAILED(vkCreateInstance(&createInfo, nullptr, &instance)))
 	{
@@ -244,7 +250,7 @@ void VulkanRenderer::createLogicalDevice()
 	}
 
 	VkPhysicalDeviceFeatures deviceFeatures = {};
-	
+
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -302,12 +308,14 @@ void VulkanRenderer::createSwapChain()
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 	uint32_t queueFamilyIndices[] = { (uint32_t)indices.graphicsFamily, (uint32_t)indices.presentFamily };
 
-	if (indices.graphicsFamily != indices.presentFamily) {
+	if (indices.graphicsFamily != indices.presentFamily)
+	{
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		createInfo.queueFamilyIndexCount = 2;
 		createInfo.pQueueFamilyIndices = queueFamilyIndices;
 	}
-	else {
+	else
+	{
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		createInfo.queueFamilyIndexCount = 0; // Optional
 		createInfo.pQueueFamilyIndices = nullptr; // Optional
@@ -344,12 +352,12 @@ void VulkanRenderer::setupDebugCallback()
 	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 	createInfo.pfnCallback = debugCallback;
 
-	if (FAILED(CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback))) 
+	if (FAILED(CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback)))
 	{
 		fprintf(stderr, "Failed to set up debug callback\n");
 		exit(-1);
 	}
-	
+
 }
 
 bool VulkanRenderer::checkValidationLayersSupport()
@@ -359,12 +367,13 @@ bool VulkanRenderer::checkValidationLayersSupport()
 	std::vector<VkLayerProperties> availableLayers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	for (const char* layerName : validationLayers) {
+	for (const char* layerName : validationLayers)
+	{
 		bool layerFound = false;
 
-		for (const auto& layerProperties : availableLayers) 
+		for (const auto& layerProperties : availableLayers)
 		{
-			if (strcmp(layerName, layerProperties.layerName) == 0) 
+			if (strcmp(layerName, layerProperties.layerName) == 0)
 			{
 				layerFound = true;
 				break;
@@ -406,8 +415,9 @@ std::vector<const char*> VulkanRenderer::getRequiredExtensions()
 	std::vector<const char*> extensions(extensionCount);
 
 	SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, extensions.data());
-	
-	if (enableValidationLayers) {
+
+	if (enableValidationLayers)
+	{
 		extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 	}
 
@@ -428,7 +438,7 @@ void VulkanRenderer::pickPhysicalDevice()
 
 	for (const auto& device : devices)
 	{
-		if (isDeviceSuitable(device)) 
+		if (isDeviceSuitable(device))
 		{
 			physicalDevice = device;
 			break;
@@ -472,16 +482,16 @@ VulkanRenderer::QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalD
 
 	int i = 0;
 	VkBool32 presentSupport = false;
-	for (const auto& queueFamily : queueFamilies) 
+	for (const auto& queueFamily : queueFamilies)
 	{
-		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			indices.graphicsFamily = i;
 
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 		if (queueFamily.queueCount > 0 && presentSupport)
 			indices.presentFamily = i;
 
-		if (indices.isComplete()) 
+		if (indices.isComplete())
 			break;
 
 		i++;
@@ -515,7 +525,7 @@ void VulkanRenderer::createImageViews()
 			exit(-1);
 		}
 	}
-	
+
 }
 
 void VulkanRenderer::createRenderPass()
@@ -547,15 +557,57 @@ void VulkanRenderer::createRenderPass()
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 
-	if (FAILED(vkCreateRenderPass(VulkanRenderer::device, &renderPassInfo, nullptr, &renderPass))) {
+	if (FAILED(vkCreateRenderPass(VulkanRenderer::device, &renderPassInfo, nullptr, &renderPass)))
+	{
 		fprintf(stderr, "failed to create render pass!\n");
+		exit(-1);
+	}
+}
+
+void VulkanRenderer::createFrameBufffers()
+{
+	swapChainFramebuffers.resize(swapChainImageViews.size());
+
+	for (size_t i = 0; i < swapChainImageViews.size(); i++)
+	{
+		VkImageView attachments[] = { swapChainImageViews[i] };
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = swapChainExtent.width;
+		framebufferInfo.height = swapChainExtent.height;
+		framebufferInfo.layers = 1;
+
+		if (FAILED(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i])))
+		{
+			fprintf(stderr, "failed to create framebuffer!\n");
+			exit(-1);
+		}
+	}
+}
+
+void VulkanRenderer::createCommandPool()
+{
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+	poolInfo.flags = 0; // Optional
+
+	if (FAILED(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool)))
+	{
+		fprintf(stderr, "failed to create command pool!\n");
 		exit(-1);
 	}
 }
 
 void VulkanRenderer::createSurface()
 {
-	if(SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE)
+	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE)
 	{
 		fprintf(stderr, "Failed to create window surface!\n");
 		exit(-1);
@@ -594,11 +646,14 @@ VkPresentModeKHR VulkanRenderer::chooseSwapPresentMode(const std::vector<VkPrese
 {
 	VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 
-	for (const auto& availablePresentMode : availablePresentModes) {
-		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+	for (const auto& availablePresentMode : availablePresentModes)
+	{
+		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
 			return availablePresentMode;
 		}
-		else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+		else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+		{
 			bestMode = availablePresentMode;
 		}
 	}
@@ -608,11 +663,13 @@ VkPresentModeKHR VulkanRenderer::chooseSwapPresentMode(const std::vector<VkPrese
 
 VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
 {
-	
-	if (capabilities.currentExtent.width != UINT32_MAX) {
+
+	if (capabilities.currentExtent.width != UINT32_MAX)
+	{
 		return capabilities.currentExtent;
 	}
-	else {
+	else
+	{
 		VkExtent2D actualExtent = { width, height };
 
 		actualExtent.width = max(capabilities.minImageExtent.width, min(capabilities.maxImageExtent.width, actualExtent.width));
@@ -624,21 +681,27 @@ VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & cap
 
 VkSurfaceFormatKHR VulkanRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
-	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
+	{
 		return { VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
 	}
 
-	for (const auto& availableFormat : availableFormats) {
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+	for (const auto& availableFormat : availableFormats)
+	{
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
 			return availableFormat;
 		}
 	}
-	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
+	{
 		return { VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
 	}
 
-	for (const auto& availableFormat : availableFormats) {
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+	for (const auto& availableFormat : availableFormats)
+	{
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
 			return availableFormat;
 		}
 	}
