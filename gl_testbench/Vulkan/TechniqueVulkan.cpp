@@ -134,4 +134,5 @@ TechniqueVulkan::~TechniqueVulkan()
 
 void TechniqueVulkan::enable(Renderer * renderer)
 {
+	vkCmdBindPipeline(((VulkanRenderer*)renderer)->getCurrentBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }

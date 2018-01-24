@@ -52,6 +52,8 @@ public:
 	void submit(Mesh* mesh);
 	void frame();
 
+	VkCommandBuffer& getCurrentBuffer();
+
 private:
 	#ifdef _DEBUG
 		const bool enableValidationLayers = true;
@@ -119,6 +121,7 @@ private:
 	
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
+	VkCommandBuffer& currentBuffer;
 
 	VkSemaphore imageAvailableSemaphore;
 	VkSemaphore renderFinishedSemaphore;

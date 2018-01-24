@@ -1,6 +1,5 @@
 #include "../VertexBuffer.h"
-#include <GL/glew.h>
-
+#include <vulkan\vulkan.h>
 class VertexBufferVulkan : public VertexBuffer
 {
 public:
@@ -12,5 +11,8 @@ public:
 	void unbind();
 	size_t getSize();
 
+private:
+	VkBuffer buffer;
+	VkDeviceMemory deviceMemory;
 
 };

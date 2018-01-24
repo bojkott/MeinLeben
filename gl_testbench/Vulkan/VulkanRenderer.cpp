@@ -5,6 +5,7 @@
 #include "MaterialVulkan.h"
 #include "TechniqueVulkan.h"
 #include "RenderStateVulkan.h"
+#include "../Mesh.h"
 
 VkDevice VulkanRenderer::device;
 VkExtent2D VulkanRenderer::swapChainExtent;
@@ -212,12 +213,7 @@ void VulkanRenderer::clearBuffer(unsigned int)
 		renderPassInfo.pClearValues = &clearColor;
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdEndRenderPass(commandBuffers[i]);
-		if (FAILED(vkEndCommandBuffer(commandBuffers[i])))
-		{
-			fprintf(stderr, "failed to record command buffer!\n");
-			exit(-1);
-		}
+
 	}
 }
 
@@ -232,6 +228,38 @@ void VulkanRenderer::submit(Mesh * mesh)
 
 void VulkanRenderer::frame()
 {
+	currentBuffer = commandBuffers[0];
+	for (auto mesh : drawList)
+	{
+		mesh->technique->enable(this);
+		size_t numberElements = mesh->geometryBuffers[0].numElements;
+		for (auto t : mesh->textures)
+		{
+			// we do not really know here if the sampler has been
+			// defined in the shader.
+			t.second->bind(t.first);
+		}
+		for (auto element : mesh->geometryBuffers)
+		{
+			mesh->bindIAVertexBuffer(element.first);
+		}
+		mesh->txBuffer->bind(mesh->technique->getMaterial());
+		vkCmdDraw(currentBuffer, numberElements*3, 1, 0, 0);
+	}
+	drawList.clear();
+
+
+	vkCmdEndRenderPass(currentBuffer);
+	if (FAILED(vkEndCommandBuffer(currentBuffer)))
+	{
+		fprintf(stderr, "failed to record command buffer!\n");
+		exit(-1);
+	}
+}
+
+VkCommandBuffer & VulkanRenderer::getCurrentBuffer()
+{
+	return currentBuffer;
 }
 
 void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
