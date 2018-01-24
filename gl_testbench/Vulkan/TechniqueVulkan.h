@@ -13,7 +13,6 @@ public:
 	void enable(Renderer* renderer);
 
 private:
-	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 };

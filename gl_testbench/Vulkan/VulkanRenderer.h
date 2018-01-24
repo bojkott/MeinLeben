@@ -25,6 +25,7 @@ public:
 	static VkDevice device;
 	static VkExtent2D swapChainExtent;
 	static VkFormat swapChainImageFormat;
+	static VkRenderPass renderPass;
 
 	VulkanRenderer();
 	~VulkanRenderer();
@@ -131,6 +132,7 @@ private:
 	void createSurface();
 	//Create image views from the avalible swapchain
 	void createImageViews();
+	void createRenderPass();
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
