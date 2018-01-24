@@ -186,6 +186,7 @@ void VulkanRenderer::initVulkan()
 	createRenderPass();
 
 	createCommandPool();
+	createCommandBuffers();
 }
 
 void VulkanRenderer::createInstance()
@@ -358,6 +359,23 @@ void VulkanRenderer::setupDebugCallback()
 		exit(-1);
 	}
 
+}
+
+void VulkanRenderer::createCommandBuffers()
+{
+	commandBuffers.resize(swapChainFramebuffers.size());
+
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+
+	if (FAILED(vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data())))
+	{
+		fprintf(stderr, "Failed to allocate command buffers\n");
+		exit(-1);
+	}
 }
 
 bool VulkanRenderer::checkValidationLayersSupport()

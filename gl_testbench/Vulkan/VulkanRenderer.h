@@ -118,7 +118,8 @@ private:
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
-	
+	std::vector<VkCommandBuffer> commandBuffers;
+
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
@@ -126,6 +127,7 @@ private:
 	void createLogicalDevice();
 	void createSwapChain();
 	void setupDebugCallback();
+	void createCommandBuffers();
 	bool checkValidationLayersSupport();
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	std::vector<const char*> getRequiredExtensions();
