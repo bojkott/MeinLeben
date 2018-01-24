@@ -112,7 +112,6 @@ private:
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
-
 	std::vector<VkImageView> swapChainImageViews;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -120,6 +119,12 @@ private:
 	
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
+
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+
+	std::vector<Mesh*> drawList;
+	VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
@@ -140,6 +145,7 @@ private:
 	void createRenderPass();
 	void createCommandPool();
 	void createFrameBufffers();
+	void createSemaphores();
 
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
