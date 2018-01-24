@@ -11,9 +11,10 @@ VertexBufferVulkan::VertexBufferVulkan(size_t size, VertexBuffer::DATA_USAGE usa
 	bufferInfo.size = vkBufferSize;
 	bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	if (vkCreateBuffer(VulkanRenderer::device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+	if (FAILED(vkCreateBuffer(VulkanRenderer::device, &bufferInfo, nullptr, &buffer)))
 	{
-		throw std::runtime_error("failed to create buffer!");
+		fprintf(stderr, "failed to create buffer!\n");
+		exit(-1);
 	}
 
 	VkMemoryRequirements memRequirements;
@@ -42,8 +43,8 @@ VertexBufferVulkan::~VertexBufferVulkan()
 void VertexBufferVulkan::setData(const void * data, size_t size, size_t offset)
 {
 	void* vkData;
-	vkMapMemory(VulkanRenderer::device, bufferMemory, offset, size, 0, &vkData);
-	memcpy(vkData, &data, size);
+	auto result = vkMapMemory(VulkanRenderer::device, bufferMemory, offset, size, 0, &vkData);
+	memcpy(vkData, data, size);
 	vkUnmapMemory(VulkanRenderer::device, bufferMemory);
 }
 

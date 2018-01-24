@@ -95,7 +95,7 @@ private:
 		void* userData);
 
 	const std::vector<const char*> validationLayers = {
-		"VK_LAYER_LUNARG_core_validation"
+		"VK_LAYER_LUNARG_standard_validation"
 	};
 
 	VkResult CreateDebugReportCallbackEXT(
