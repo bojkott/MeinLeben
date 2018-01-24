@@ -21,13 +21,10 @@ public:
 	void disable();
 
 	VkPipelineShaderStageCreateInfo* getShaderStages();
-	VkDescriptorSetLayout* getDescriptorSetLayout();
 private:
 	int compileShader(ShaderType type, std::string& errString);
-	void createDescriptorSets();
 	VkShaderModule shaderObjects[4] = { NULL, NULL, NULL, NULL };
 	VkPipelineShaderStageCreateInfo shaderStages[4];
-	VkDescriptorSetLayout descriptorSetLayout;
-
+	
 	std::string expandShaderText(std::string& shaderText, ShaderType type);
 };

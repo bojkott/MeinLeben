@@ -56,7 +56,7 @@ void VertexBufferVulkan::bind(size_t offset, size_t size, unsigned int location)
 
 	VkWriteDescriptorSet descriptorWrite = {};
 	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrite.dstSet = TechniqueVulkan::currentTechnique->descriptorSet;
+	descriptorWrite.dstSet = VulkanRenderer::descriptorSet;
 	descriptorWrite.dstBinding = location;
 	descriptorWrite.dstArrayElement = 0;
 

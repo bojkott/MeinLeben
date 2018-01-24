@@ -10,4 +10,3 @@ Renderer* Renderer::makeRenderer(BACKEND option)
 	else if (option == BACKEND::VULKAN)
 		return new VulkanRenderer();
 }
-

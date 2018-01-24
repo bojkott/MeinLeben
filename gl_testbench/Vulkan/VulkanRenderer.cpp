@@ -13,7 +13,8 @@ VkExtent2D VulkanRenderer::swapChainExtent;
 VkFormat VulkanRenderer::swapChainImageFormat;
 VkRenderPass VulkanRenderer::renderPass;
 VkPhysicalDevice VulkanRenderer::physicalDevice = VK_NULL_HANDLE;
-VkDescriptorPool VulkanRenderer::descriptorPool;
+VkPipelineLayout VulkanRenderer::pipelineLayout;
+VkDescriptorSet VulkanRenderer::descriptorSet;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -168,6 +169,7 @@ int VulkanRenderer::shutdown()
 {
 	vkDeviceWaitIdle(device);
 
+	vkDestroyPipelineLayout(VulkanRenderer::device, pipelineLayout, nullptr);
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
 	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
@@ -235,6 +237,7 @@ void VulkanRenderer::submit(Mesh * mesh)
 void VulkanRenderer::frame()
 {
 	currentBuffer = &commandBuffers[0];
+	vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 	for (auto mesh : drawList)
 	{
 		mesh->technique->enable(this);
@@ -300,7 +303,9 @@ void VulkanRenderer::initVulkan()
 	createCommandBuffers();
 	createSemaphores();
 
+	createDescriptorSetLayout();
 	createDescriptorPool();
+	createDescriptorSet();
 }
 
 void VulkanRenderer::createInstance()
@@ -777,6 +782,89 @@ void VulkanRenderer::createDescriptorPool()
 	if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
 	{
 		fprintf(stderr, "failed to create descriptor pool!\n");
+		exit(-1);
+	}
+}
+
+void VulkanRenderer::createDescriptorSet()
+{
+	VkDescriptorSetLayout layouts[] = {descriptorSetLayout};
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = layouts;
+
+	if (FAILED(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet))) {
+		fprintf(stderr, "failed to allocate descriptor set!\n");
+		exit(-1);
+	}
+}
+
+void VulkanRenderer::createDescriptorSetLayout()
+{
+	std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = POSITION;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = NORMAL;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = TEXTCOORD;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = TRANSLATION;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings.push_back(uboLayoutBinding);
+
+	uboLayoutBinding.binding = DIFFUSE_TINT;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	bindings.push_back(uboLayoutBinding);
+
+	//texture
+	uboLayoutBinding.binding = DIFFUSE_SLOT;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+	bindings.push_back(uboLayoutBinding);
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = bindings.size();
+	layoutInfo.pBindings = bindings.data();
+
+
+	if (FAILED(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout)))
+	{
+		fprintf(stderr, "failed to create descriptor set layout!\n");
+		exit(-1);
+	}
+}
+
+void VulkanRenderer::createPipelineLayout()
+{
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1; // Optional
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
+	pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
+
+	if (FAILED(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
+		fprintf(stderr, "failed to create pipeline layout!\n");
 		exit(-1);
 	}
 }

@@ -85,17 +85,7 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
 
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1; // Optional
-	pipelineLayoutInfo.pSetLayouts = ((MaterialVulkan*)m)->getDescriptorSetLayout(); // Optional
-	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-	pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
 
-	if (FAILED(vkCreatePipelineLayout(VulkanRenderer::device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
-		fprintf(stderr, "failed to create pipeline layout!\n");
-		exit(-1);
-	}
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -113,7 +103,7 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = nullptr; // Optional
 
-	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.layout = VulkanRenderer::pipelineLayout;
 	pipelineInfo.renderPass = VulkanRenderer::renderPass;
 	pipelineInfo.subpass = 0;
 
@@ -125,30 +115,17 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 		exit(-1);
 	}
 
-	//Descriptor sets
-	VkDescriptorSetLayout layouts[] = { *((MaterialVulkan*)m)->getDescriptorSetLayout() };
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = VulkanRenderer::descriptorPool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = layouts;
-
-	if (FAILED(vkAllocateDescriptorSets(VulkanRenderer::device, &allocInfo, &descriptorSet))) {
-		fprintf(stderr, "failed to allocate descriptor set!\n");
-		exit(-1);
-	}
 
 }
 
 TechniqueVulkan::~TechniqueVulkan()
 {
 	vkDestroyPipeline(VulkanRenderer::device, graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(VulkanRenderer::device, pipelineLayout, nullptr);
 }
 
 void TechniqueVulkan::enable(Renderer * renderer)
 {
 	currentTechnique = this;
 	vkCmdBindPipeline(((VulkanRenderer*)renderer)->getCurrentBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-	vkCmdBindDescriptorSets(((VulkanRenderer*)renderer)->getCurrentBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+	
 }

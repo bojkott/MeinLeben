@@ -27,7 +27,8 @@ public:
 	static VkFormat swapChainImageFormat;
 	static VkRenderPass renderPass;
 	static VkPhysicalDevice physicalDevice;
-	static VkDescriptorPool descriptorPool;
+	static VkPipelineLayout pipelineLayout;
+	static VkDescriptorSet descriptorSet;
 
 	VulkanRenderer();
 	~VulkanRenderer();
@@ -115,6 +116,9 @@ private:
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
+	VkDescriptorPool descriptorPool;
+	VkDescriptorSetLayout descriptorSetLayout;
+
 	std::vector<VkImageView> swapChainImageViews;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -151,6 +155,9 @@ private:
 	void createFrameBufffers();
 	void createSemaphores();
 	void createDescriptorPool();
+	void createDescriptorSetLayout();
+	void createDescriptorSet();
+	void createPipelineLayout();
 
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);

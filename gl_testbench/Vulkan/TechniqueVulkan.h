@@ -13,11 +13,8 @@ public:
 	~TechniqueVulkan();
 
 	void enable(Renderer* renderer);
-
-	VkDescriptorSet descriptorSet;
-
+	
 private:
-	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	
 };
