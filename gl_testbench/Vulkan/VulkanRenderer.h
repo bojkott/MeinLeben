@@ -112,14 +112,14 @@ private:
 	VkQueue presentQueue;
 	VkSurfaceKHR surface;
 
-	VkCommandPool commandPool;
 
 	std::vector<VkImageView> swapChainImageViews;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
+	
+	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-
 
 	void initWindow(unsigned int width, unsigned int height);
 	void initVulkan();
@@ -138,8 +138,9 @@ private:
 	//Create image views from the avalible swapchain
 	void createImageViews();
 	void createRenderPass();
-	void createFrameBufffers();
 	void createCommandPool();
+	void createFrameBufffers();
+
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
