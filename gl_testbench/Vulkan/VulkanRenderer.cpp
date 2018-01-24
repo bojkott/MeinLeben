@@ -237,6 +237,12 @@ void VulkanRenderer::submit(Mesh * mesh)
 void VulkanRenderer::frame()
 {
 	currentBuffer = &commandBuffers[0];
+
+	if(drawList.size() > 0)
+	for (auto element : drawList[0]->geometryBuffers)
+	{
+		drawList[0]->bindIAVertexBuffer(element.first);
+	}
 	vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 	for (auto mesh : drawList)
 	{
@@ -248,11 +254,9 @@ void VulkanRenderer::frame()
 			// defined in the shader.
 			t.second->bind(t.first);
 		}
-		for (auto element : mesh->geometryBuffers)
-		{
-			mesh->bindIAVertexBuffer(element.first);
-		}
+
 		//mesh->txBuffer->bind(mesh->technique->getMaterial());
+		
 		vkCmdDraw(*currentBuffer, numberElements*3, 1, 0, 0);
 	}
 	drawList.clear();
