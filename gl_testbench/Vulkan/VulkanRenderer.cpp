@@ -16,6 +16,7 @@ VkRenderPass VulkanRenderer::renderPass;
 VkPhysicalDevice VulkanRenderer::physicalDevice = VK_NULL_HANDLE;
 VkPipelineLayout VulkanRenderer::pipelineLayout;
 VkDescriptorSet VulkanRenderer::descriptorSet;
+VkCommandBuffer* VulkanRenderer::currentBuffer;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -238,18 +239,21 @@ void VulkanRenderer::submit(Mesh * mesh)
 void VulkanRenderer::frame()
 {
 	if (drawList.size() > 0)
+	{
 		for (auto element : drawList[0]->geometryBuffers)
 		{
 			drawList[0]->bindIAVertexBuffer(element.first);
 		}
+	}
 
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
 		currentBuffer = &commandBuffers[i];
 
 		vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-		for (auto mesh : drawList)
+		for (int j = 0; j < drawList.size(); j++)
 		{
+			auto mesh = drawList[j];
 			mesh->technique->enable(this);
 			size_t numberElements = mesh->geometryBuffers[0].numElements;
 			for (auto t : mesh->textures)
@@ -259,7 +263,7 @@ void VulkanRenderer::frame()
 				t.second->bind(t.first);
 			}
 
-			//mesh->txBuffer->bind(mesh->technique->getMaterial());
+			mesh->txBuffer->bind(mesh->technique->getMaterial());
 
 			vkCmdDraw(*currentBuffer, 3, 1, 0, 0);
 		}
@@ -280,10 +284,6 @@ void VulkanRenderer::frame()
 
 }
 
-VkCommandBuffer & VulkanRenderer::getCurrentBuffer()
-{
-	return *currentBuffer;
-}
 
 void VulkanRenderer::initWindow(unsigned int width, unsigned int height)
 {
@@ -856,7 +856,7 @@ void VulkanRenderer::createDescriptorSetLayout()
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = bindings.size();
 	layoutInfo.pBindings = bindings.data();
-
+	
 
 	if (FAILED(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout)))
 	{
@@ -867,12 +867,18 @@ void VulkanRenderer::createDescriptorSetLayout()
 
 void VulkanRenderer::createPipelineLayout()
 {
+
+	VkPushConstantRange pushConstantRange = {};
+	pushConstantRange.size = sizeof(float) * 4; //float4
+	pushConstantRange.offset = 0;
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1; // Optional
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
-	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-	pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
 
 	if (FAILED(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
 		fprintf(stderr, "failed to create pipeline layout!\n");

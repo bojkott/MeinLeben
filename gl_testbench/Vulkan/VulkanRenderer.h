@@ -29,7 +29,7 @@ public:
 	static VkPhysicalDevice physicalDevice;
 	static VkPipelineLayout pipelineLayout;
 	static VkDescriptorSet descriptorSet;
-
+	static VkCommandBuffer* currentBuffer;
 	VulkanRenderer();
 	~VulkanRenderer();
 
@@ -54,8 +54,6 @@ public:
 	void setRenderState(RenderState* ps);
 	void submit(Mesh* mesh);
 	void frame();
-
-	VkCommandBuffer& getCurrentBuffer();
 
 private:
 	#ifdef _DEBUG
@@ -126,7 +124,6 @@ private:
 	
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-	VkCommandBuffer* currentBuffer;
 
 	VkSemaphore imageAvailableSemaphore;
 	VkSemaphore renderFinishedSemaphore;

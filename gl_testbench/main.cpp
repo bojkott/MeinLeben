@@ -55,7 +55,7 @@ void updateDelta()
 };
 
 // TOTAL_TRIS pretty much decides how many drawcalls in a brute force approach.
-constexpr int TOTAL_TRIS = 100.0f;
+constexpr int TOTAL_TRIS = 1000.0f;
 // this has to do with how the triangles are spread in the screen, not important.
 constexpr int TOTAL_PLACES = 2 * TOTAL_TRIS;
 float xt[TOTAL_PLACES], yt[TOTAL_PLACES];
@@ -106,7 +106,7 @@ void updateScene()
 				i * (-1.0 / TOTAL_PLACES),
 				0.0
 			};
-			//scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
+			scene[i]->txBuffer->setData(&trans, sizeof(trans), scene[i]->technique->getMaterial(), TRANSLATION);
 		}
 		// just to make them move...
 		shift+=max(TOTAL_TRIS / 1000.0,TOTAL_TRIS / 100.0);
