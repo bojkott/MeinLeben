@@ -12,7 +12,8 @@ class Texture2DVulkan
 private:
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
-
+	VkImageView textureImageView;
+	VkSampler textureSampler;
 public:
 	Texture2DVulkan();
 	~Texture2DVulkan();
@@ -31,6 +32,8 @@ private:
 
 
 	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	VkImageView createImageView(VkImage image, VkFormat format);
+	void createTextureSampler();
 
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
