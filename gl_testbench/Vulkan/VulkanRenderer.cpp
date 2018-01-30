@@ -238,19 +238,11 @@ void VulkanRenderer::submit(Mesh * mesh)
 
 void VulkanRenderer::frame()
 {
-	if (drawList.size() > 0)
-	{
-		for (auto element : drawList[0]->geometryBuffers)
-		{
-			drawList[0]->bindIAVertexBuffer(element.first);
-		}
-	}
-
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
 		currentBuffer = &commandBuffers[i];
 
-		vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		//vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 		for (int j = 0; j < drawList.size(); j++)
 		{
 			auto mesh = drawList[j];
@@ -265,6 +257,11 @@ void VulkanRenderer::frame()
 
 			mesh->txBuffer->bind(mesh->technique->getMaterial());
 
+			for (auto element : mesh->geometryBuffers)
+			{
+				mesh->bindIAVertexBuffer(element.first);
+			}
+
 			vkCmdDraw(*currentBuffer, 3, 1, 0, 0);
 		}
 
@@ -278,10 +275,6 @@ void VulkanRenderer::frame()
 	}
 	drawList.clear();
 		
-
-	
-
-
 }
 
 
@@ -764,22 +757,17 @@ void VulkanRenderer::createDescriptorPool()
 {
 
 	/*
-		The poolSize contains the required amount of each dataType in the shaders times the number of techniques.
-		Each technique has its own descriptorSet so the poolInfo.maxSets need to be >= 4
+		The poolSize contains the required amount of each dataType in the shaders..
 	*/
 
-	unsigned int numberOfTechniques = 4;
 
 	std::vector<VkDescriptorPoolSize> poolSizes;
 	VkDescriptorPoolSize poolSize = {};
-	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 3* numberOfTechniques;
-	poolSizes.push_back(poolSize);
 	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = 2* numberOfTechniques;
+	poolSize.descriptorCount = 2;
 	poolSizes.push_back(poolSize);
 	poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSize.descriptorCount = 1* numberOfTechniques;
+	poolSize.descriptorCount = 1;
 	poolSizes.push_back(poolSize);
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
@@ -787,7 +775,7 @@ void VulkanRenderer::createDescriptorPool()
 	poolInfo.poolSizeCount = poolSizes.size();
 	poolInfo.pPoolSizes = poolSizes.data();
 
-	poolInfo.maxSets = numberOfTechniques;
+	poolInfo.maxSets = 1;
 
 
 	if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
@@ -817,23 +805,25 @@ void VulkanRenderer::createDescriptorSetLayout()
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-	uboLayoutBinding.binding = POSITION;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-	bindings.push_back(uboLayoutBinding);
+	//uboLayoutBinding.binding = POSITION;
+	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	//uboLayoutBinding.descriptorCount = 1;
+	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	//uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-	uboLayoutBinding.binding = NORMAL;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-	bindings.push_back(uboLayoutBinding);
+	//bindings.push_back(uboLayoutBinding);
 
-	uboLayoutBinding.binding = TEXTCOORD;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
-	bindings.push_back(uboLayoutBinding);
+	//uboLayoutBinding.binding = NORMAL;
+	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	//bindings.push_back(uboLayoutBinding);
+
+	//uboLayoutBinding.binding = TEXTCOORD;
+	//uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	//uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
+	//bindings.push_back(uboLayoutBinding);
 
 	uboLayoutBinding.binding = TRANSLATION;
 	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

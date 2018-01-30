@@ -1,6 +1,7 @@
 #pragma once
 #include "../Material.h"
 #include <vulkan\vulkan.h>
+#include <vector>
 class MaterialVulkan : public Material
 {
 public:
@@ -21,10 +22,15 @@ public:
 	void disable();
 
 	VkPipelineShaderStageCreateInfo* getShaderStages();
+
+	std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+	std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 private:
 	int compileShader(ShaderType type, std::string& errString);
 	VkShaderModule shaderObjects[4] = { NULL, NULL, NULL, NULL };
 	VkPipelineShaderStageCreateInfo shaderStages[4];
 	
 	std::string expandShaderText(std::string& shaderText, ShaderType type);
+
+
 };

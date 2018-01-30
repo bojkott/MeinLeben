@@ -185,3 +185,51 @@ std::string MaterialVulkan::expandShaderText(std::string & shaderText, ShaderTyp
 
 	return result;
 }
+
+std::vector<VkVertexInputBindingDescription> MaterialVulkan::getBindingDescriptions()
+{
+
+	std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+
+	VkVertexInputBindingDescription bindingDescription = {};
+	bindingDescription.binding = POSITION;
+	bindingDescription.stride = sizeof(float)*4;
+	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	bindingDescriptions.push_back(bindingDescription);
+
+	bindingDescription.binding = TEXTCOORD;
+	bindingDescription.stride = sizeof(float) * 2;
+	bindingDescriptions.push_back(bindingDescription);
+
+	bindingDescription.binding = NORMAL;
+	bindingDescription.stride = sizeof(float) * 4;
+	bindingDescriptions.push_back(bindingDescription);
+
+	return bindingDescriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription> MaterialVulkan::getAttributeDescriptions()
+{
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+
+	VkVertexInputAttributeDescription attributeDescription = {};
+	attributeDescription.binding = POSITION;
+	attributeDescription.location = POSITION;
+	attributeDescription.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	attributeDescription.offset = 0;
+	attributeDescriptions.push_back(attributeDescription);
+
+	attributeDescription.binding = TEXTCOORD;
+	attributeDescription.location = TEXTCOORD;
+	attributeDescription.format = VK_FORMAT_R32G32_SFLOAT;
+	attributeDescription.offset = 0;
+	attributeDescriptions.push_back(attributeDescription);
+
+	attributeDescription.binding = NORMAL;
+	attributeDescription.location = NORMAL;
+	attributeDescription.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	attributeDescription.offset = 0;
+	attributeDescriptions.push_back(attributeDescription);
+
+	return attributeDescriptions;
+}

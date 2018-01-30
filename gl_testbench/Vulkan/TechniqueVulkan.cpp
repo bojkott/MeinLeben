@@ -8,12 +8,17 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 {
 
 	//vertex input
+
+	std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions = ((MaterialVulkan*)m)->getBindingDescriptions();
+	std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions = ((MaterialVulkan*)m)->getAttributeDescriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+	vertexInputInfo.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
+	vertexInputInfo.pVertexBindingDescriptions = vertexBindingDescriptions.data();
+	vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptions.size();
+	vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
+
 
 	//input assembly
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -113,8 +118,6 @@ TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r
 		fprintf(stderr, "failed to create graphics pipeline!\n");
 		exit(-1);
 	}
-
-
 }
 
 TechniqueVulkan::~TechniqueVulkan()

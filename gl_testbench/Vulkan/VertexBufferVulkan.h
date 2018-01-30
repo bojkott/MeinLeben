@@ -13,7 +13,7 @@ public:
 
 private:
 	size_t bufferSize;
-	VkBuffer buffer;
-	VkDeviceMemory bufferMemory;
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 };
