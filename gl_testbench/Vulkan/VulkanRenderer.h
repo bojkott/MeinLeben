@@ -30,6 +30,8 @@ public:
 	static VkPipelineLayout pipelineLayout;
 	static VkDescriptorSet descriptorSet;
 	static VkCommandBuffer* currentBuffer;
+	static VkCommandPool commandPool;
+	static VkQueue graphicsQueue;
 	VulkanRenderer();
 	~VulkanRenderer();
 
@@ -108,7 +110,7 @@ private:
 	SDL_Window* window;
 	VkInstance instance;
 	VkDebugReportCallbackEXT callback;
-	VkQueue graphicsQueue;
+
 	uint32_t height;
 	uint32_t width;
 	VkQueue presentQueue;
@@ -122,7 +124,7 @@ private:
 	std::vector<VkImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	
-	VkCommandPool commandPool;
+
 	std::vector<VkCommandBuffer> commandBuffers;
 
 	VkSemaphore imageAvailableSemaphore;

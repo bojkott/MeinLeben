@@ -17,6 +17,8 @@ VkPhysicalDevice VulkanRenderer::physicalDevice = VK_NULL_HANDLE;
 VkPipelineLayout VulkanRenderer::pipelineLayout;
 VkDescriptorSet VulkanRenderer::descriptorSet;
 VkCommandBuffer* VulkanRenderer::currentBuffer;
+VkCommandPool VulkanRenderer::commandPool;
+VkQueue VulkanRenderer::graphicsQueue;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
