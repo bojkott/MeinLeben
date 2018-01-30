@@ -91,12 +91,7 @@ Sampler2D * VulkanRenderer::makeSampler2D()
 
 RenderState * VulkanRenderer::makeRenderState()
 {
-	RenderStateVulkan* newRS = new RenderStateVulkan();
-	//newRS->setGlobalWireFrame(&this->globalWireframeMode);
-	newRS->setWireFrame(false);
-	newRS->set();
-	return (RenderStateVulkan*)newRS;
-	//return new RenderStateVulkan();
+	return new RenderStateVulkan();
 }
 
 std::string VulkanRenderer::getShaderPath()
@@ -269,7 +264,7 @@ void VulkanRenderer::frame()
 				mesh->bindIAVertexBuffer(element.first);
 			}
 
-			vkCmdDraw(*currentBuffer, 3, 1, 0, 0);
+			vkCmdDraw(*currentBuffer, numberElements, 1, 0, 0);
 		}
 
 
@@ -381,6 +376,7 @@ void VulkanRenderer::createLogicalDevice()
 	}
 
 	VkPhysicalDeviceFeatures deviceFeatures = {};
+	deviceFeatures.fillModeNonSolid = VK_TRUE;
 
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -602,6 +598,11 @@ void VulkanRenderer::pickPhysicalDevice()
 
 bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device)
 {
+	VkPhysicalDeviceProperties deviceProperties;
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
 	QueueFamilyIndices indices = findQueueFamilies(device);
 	bool extensionsSupported = checkDeviceExtensionSupport(device);
 	bool swapChainAdequate = false;
@@ -611,10 +612,7 @@ bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device)
 		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
 	return indices.isComplete() && extensionsSupported && swapChainAdequate;
-	/*VkPhysicalDeviceProperties deviceProperties;
-	VkPhysicalDeviceFeatures deviceFeatures;
-	vkGetPhysicalDeviceProperties(device, &deviceProperties);
-	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+	/*
 
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;*/
 }

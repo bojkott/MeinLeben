@@ -17,8 +17,6 @@ public:
 	VkPipelineColorBlendStateCreateInfo* getColorBlending();
 
 private:
-	bool wireFrame;
-	bool* globalWireFrame;
 	VkViewport viewport;
 	VkRect2D scissor;
 	VkPipelineViewportStateCreateInfo viewportState;
