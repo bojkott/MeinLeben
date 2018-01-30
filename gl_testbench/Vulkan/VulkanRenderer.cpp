@@ -243,7 +243,7 @@ void VulkanRenderer::frame()
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
 		currentBuffer = &commandBuffers[i];
-
+		
 		//vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 		for (int j = 0; j < drawList.size(); j++)
 		{
@@ -863,17 +863,23 @@ void VulkanRenderer::createDescriptorSetLayout()
 void VulkanRenderer::createPipelineLayout()
 {
 
+	std::vector<VkPushConstantRange> pushConstants;
+
 	VkPushConstantRange pushConstantRange = {};
 	pushConstantRange.size = sizeof(float) * 4; //float4
 	pushConstantRange.offset = 0;
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	pushConstants.push_back(pushConstantRange);
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstantRange.offset = sizeof(float) * 4;
+	pushConstants.push_back(pushConstantRange);
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1; // Optional
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
-	pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size(); // Optional
+	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data(); // Optional
 
 	if (FAILED(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
 		fprintf(stderr, "failed to create pipeline layout!\n");

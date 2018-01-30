@@ -1,5 +1,6 @@
 #pragma once
 #include "../Material.h"
+#include "ConstantBufferVulkan.h"
 #include <vulkan\vulkan.h>
 #include <vector>
 class MaterialVulkan : public Material
@@ -32,5 +33,5 @@ private:
 	
 	std::string expandShaderText(std::string& shaderText, ShaderType type);
 
-
+	std::map<unsigned int, ConstantBufferVulkan*> constantBuffers;
 };

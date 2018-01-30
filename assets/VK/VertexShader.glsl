@@ -20,7 +20,7 @@ layout(location=POSITION) in vec4 position_in;
 
 layout(push_constant) uniform TRANSLATION_NAME
 {
-	vec4 translate;
+	layout(offset = 0) vec4 translate;
 };
 
 

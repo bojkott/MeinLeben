@@ -7,6 +7,8 @@ TechniqueVulkan* TechniqueVulkan::currentTechnique;
 
 TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r)
 {
+	material = m;
+	renderState = r;
 	RenderStateVulkan* vkR = (RenderStateVulkan*)r;
 	//vertex input
 
@@ -68,5 +70,5 @@ void TechniqueVulkan::enable(Renderer * renderer)
 {
 	currentTechnique = this;
 	vkCmdBindPipeline(*((VulkanRenderer*)renderer)->currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-	
+	material->enable();
 }

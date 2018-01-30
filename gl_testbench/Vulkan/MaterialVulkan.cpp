@@ -88,14 +88,20 @@ int MaterialVulkan::compileMaterial(std::string & errString)
 
 void MaterialVulkan::addConstantBuffer(std::string name, unsigned int location)
 {
+	constantBuffers[location] = new ConstantBufferVulkan(name, location);
 }
 
 void MaterialVulkan::updateConstantBuffer(const void * data, size_t size, unsigned int location)
 {
+	constantBuffers[location]->setData(data, size, this, location);
 }
 
 int MaterialVulkan::enable()
 {
+	for (auto cb : constantBuffers)
+	{
+		cb.second->bind(this);
+	}
 	return 0;
 }
 
