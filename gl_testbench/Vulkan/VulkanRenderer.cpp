@@ -7,6 +7,8 @@
 #include "RenderStateVulkan.h"
 #include "VertexBufferVulkan.h"
 #include "ConstantBufferVulkan.h"
+#include "Texture2DVulkan.h"
+#include "Sampler2DVulkan.h"
 #include "../Mesh.h"
 
 VkDevice VulkanRenderer::device;
@@ -81,12 +83,12 @@ VertexBuffer * VulkanRenderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_
 
 Texture2D * VulkanRenderer::makeTexture2D()
 {
-	return nullptr;
+	return new Texture2DVulkan();
 }
 
 Sampler2D * VulkanRenderer::makeSampler2D()
 {
-	return nullptr;
+	return new Sampler2DVulkan();
 }
 
 RenderState * VulkanRenderer::makeRenderState()
@@ -244,7 +246,7 @@ void VulkanRenderer::frame()
 	{
 		currentBuffer = &commandBuffers[i];
 		
-		//vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 		for (int j = 0; j < drawList.size(); j++)
 		{
 			auto mesh = drawList[j];

@@ -1,6 +1,6 @@
 #include "Texture2DVulkan.h"
 #define STB_IMAGE_IMPLEMENTATION
-
+#include "Sampler2DVulkan.h"
 
 Texture2DVulkan::Texture2DVulkan()
 {
@@ -48,11 +48,12 @@ int Texture2DVulkan::loadFromFile(std::string filename)
 
 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(VulkanRenderer::device, stagingBuffer, nullptr);
 	vkFreeMemory(VulkanRenderer::device, stagingBufferMemory, nullptr);
 	textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM);
+
+
 }
 
 
@@ -113,6 +114,8 @@ VkCommandBuffer Texture2DVulkan::beginSingleTimeCommands()
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandPool = VulkanRenderer::commandPool;
+	allocInfo.commandBufferCount = 1;
+
 
 	VkCommandBuffer commandBuffer;
 	vkAllocateCommandBuffers(VulkanRenderer::device, &allocInfo, &commandBuffer);
@@ -187,6 +190,32 @@ void Texture2DVulkan::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t
 
 void Texture2DVulkan::bind(unsigned int slot)
 {
+
+	if (!this->textureSampler)
+	{
+		if (!this->sampler)
+			this->sampler = new Sampler2DVulkan();
+
+		createTextureSampler();
+	}
+
+	VkDescriptorImageInfo imageInfo = {};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageInfo.imageView = textureImageView;
+	imageInfo.sampler = textureSampler;
+
+	VkWriteDescriptorSet descriptorWrite = {};
+				   
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = VulkanRenderer::descriptorSet;
+	descriptorWrite.dstBinding = slot;
+	descriptorWrite.dstArrayElement = 0;
+	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pImageInfo = &imageInfo;
+
+
+	vkUpdateDescriptorSets(VulkanRenderer::device, 1, &descriptorWrite, 0, nullptr);
 }
 
 
@@ -278,7 +307,7 @@ void Texture2DVulkan::transitionImageLayout(VkImage image, VkFormat format, VkIm
 
 	vkCmdPipelineBarrier(
 		commandBuffer,
-		0 /* TODO */, 0 /* TODO */,
+		sourceStage, destinationStage,
 		0,
 		0, nullptr,
 		0, nullptr,
@@ -312,23 +341,7 @@ VkImageView Texture2DVulkan::createImageView(VkImage image, VkFormat format)
 
 void Texture2DVulkan::createTextureSampler()
 {
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = 16;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
+	VkSamplerCreateInfo samplerInfo = ((Sampler2DVulkan*)this->sampler)->samplerInfo;
 
 	if (FAILED(vkCreateSampler(VulkanRenderer::device, &samplerInfo, nullptr, &textureSampler)))
 	{

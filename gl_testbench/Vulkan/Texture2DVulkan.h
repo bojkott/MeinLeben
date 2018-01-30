@@ -7,13 +7,13 @@
 #include "VulkanRenderer.h"
 
 
-class Texture2DVulkan
+class Texture2DVulkan : public Texture2D
 {
 private:
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
 	VkImageView textureImageView;
-	VkSampler textureSampler;
+	VkSampler textureSampler = NULL;
 public:
 	Texture2DVulkan();
 	~Texture2DVulkan();
