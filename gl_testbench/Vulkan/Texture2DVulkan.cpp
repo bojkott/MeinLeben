@@ -9,6 +9,8 @@ Texture2DVulkan::Texture2DVulkan()
 
 Texture2DVulkan::~Texture2DVulkan()
 {
+	vkDestroySampler(VulkanRenderer::device, textureSampler, nullptr);
+	vkDestroyImageView(VulkanRenderer::device, textureImageView, nullptr); //Don't know if this is needed... (the textureImageView)
 }
 
 int Texture2DVulkan::loadFromFile(std::string filename)
@@ -50,6 +52,7 @@ int Texture2DVulkan::loadFromFile(std::string filename)
 
 	vkDestroyBuffer(VulkanRenderer::device, stagingBuffer, nullptr);
 	vkFreeMemory(VulkanRenderer::device, stagingBufferMemory, nullptr);
+	textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 
@@ -283,4 +286,53 @@ void Texture2DVulkan::transitionImageLayout(VkImage image, VkFormat format, VkIm
 	);
 
 	endSingleTimeCommands(commandBuffer);
+}
+
+VkImageView Texture2DVulkan::createImageView(VkImage image, VkFormat format)
+{
+	VkImageViewCreateInfo viewInfo = {};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkImageView view;
+	if (FAILED(vkCreateImageView(VulkanRenderer::device, &viewInfo, nullptr, &view)))
+	{
+		fprintf(stderr, "failed to create texture image view!\n");
+		exit(-1);
+	}
+	return view;
+}
+
+void Texture2DVulkan::createTextureSampler()
+{
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = 16;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	if (FAILED(vkCreateSampler(VulkanRenderer::device, &samplerInfo, nullptr, &textureSampler)))
+	{
+		fprintf(stderr, "failed to create texture sampler!\n");
+		exit(-1);
+	}
 }

@@ -665,7 +665,7 @@ void VulkanRenderer::createImageViews()
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
-		if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+		if (FAILED(vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i])))
 		{
 			fprintf(stderr, "Failed to create image views!\n");
 			exit(-1);
