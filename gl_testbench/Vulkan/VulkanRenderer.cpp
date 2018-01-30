@@ -89,7 +89,12 @@ Sampler2D * VulkanRenderer::makeSampler2D()
 
 RenderState * VulkanRenderer::makeRenderState()
 {
-	return new RenderStateVulkan();
+	RenderStateVulkan* newRS = new RenderStateVulkan();
+	//newRS->setGlobalWireFrame(&this->globalWireframeMode);
+	newRS->setWireFrame(false);
+	newRS->set();
+	return (RenderStateVulkan*)newRS;
+	//return new RenderStateVulkan();
 }
 
 std::string VulkanRenderer::getShaderPath()
