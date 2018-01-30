@@ -17,6 +17,8 @@ VkPhysicalDevice VulkanRenderer::physicalDevice = VK_NULL_HANDLE;
 VkPipelineLayout VulkanRenderer::pipelineLayout;
 VkDescriptorSet VulkanRenderer::descriptorSet;
 VkCommandBuffer* VulkanRenderer::currentBuffer;
+VkCommandPool VulkanRenderer::commandPool;
+VkQueue VulkanRenderer::graphicsQueue;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -89,7 +91,12 @@ Sampler2D * VulkanRenderer::makeSampler2D()
 
 RenderState * VulkanRenderer::makeRenderState()
 {
-	return new RenderStateVulkan();
+	RenderStateVulkan* newRS = new RenderStateVulkan();
+	//newRS->setGlobalWireFrame(&this->globalWireframeMode);
+	newRS->setWireFrame(false);
+	newRS->set();
+	return (RenderStateVulkan*)newRS;
+	//return new RenderStateVulkan();
 }
 
 std::string VulkanRenderer::getShaderPath()
