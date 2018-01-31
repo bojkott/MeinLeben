@@ -11,6 +11,7 @@ ConstantBufferVulkan::ConstantBufferVulkan(std::string NAME, unsigned int locati
 
 ConstantBufferVulkan::~ConstantBufferVulkan()
 {
+	free(buff);
 }
 
 void ConstantBufferVulkan::setData(const void * data, size_t size, Material * m, unsigned int location)

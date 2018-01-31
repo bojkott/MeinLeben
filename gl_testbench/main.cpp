@@ -227,7 +227,7 @@ int initialiseTestbench()
 	textures.push_back(fatboy);
 	samplers.push_back(sampler);
 	
-	// pre-allocate one single vertex buffer for ALL triangles
+	// pre-allocated one single vertex buffer for ALL triangles
 	pos = renderer->makeVertexBuffer(TOTAL_TRIS * sizeof(triPos), VertexBuffer::DATA_USAGE::STATIC);
 	nor = renderer->makeVertexBuffer(TOTAL_TRIS * sizeof(triNor), VertexBuffer::DATA_USAGE::STATIC);
 	uvs = renderer->makeVertexBuffer(TOTAL_TRIS * sizeof(triUV), VertexBuffer::DATA_USAGE::STATIC);
@@ -282,22 +282,22 @@ void shutdown() {
 	{
 		delete(m);
 	};
-	//assert(pos->refCount() == 0);
-	//delete pos;
-	//assert(nor->refCount() == 0);
-	//delete nor;
-	//assert(uvs->refCount() == 0);
-	//delete uvs;
-	//
-	//for (auto s : samplers)
-	//{
-	//	delete s;
-	//}
+	assert(pos->refCount() == 0);
+	delete pos;
+	assert(nor->refCount() == 0);
+	delete nor;
+	assert(uvs->refCount() == 0);
+	delete uvs;
+	
+	for (auto s : samplers)
+	{
+		delete s;
+	}
 
-	//for (auto t : textures)
-	//{
-	//	delete t;
-	//}
+	for (auto t : textures)
+	{
+		delete t;
+	}
 	renderer->shutdown();
 };
 

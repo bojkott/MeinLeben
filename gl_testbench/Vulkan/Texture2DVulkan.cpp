@@ -10,7 +10,9 @@ Texture2DVulkan::Texture2DVulkan()
 Texture2DVulkan::~Texture2DVulkan()
 {
 	vkDestroySampler(VulkanRenderer::device, textureSampler, nullptr);
-	vkDestroyImageView(VulkanRenderer::device, textureImageView, nullptr); //Don't know if this is needed... (the textureImageView)
+	vkDestroyImageView(VulkanRenderer::device, textureImageView, nullptr);
+	vkDestroyImage(VulkanRenderer::device, textureImage, nullptr);
+	vkFreeMemory(VulkanRenderer::device, textureImageMemory, nullptr);
 }
 
 int Texture2DVulkan::loadFromFile(std::string filename)

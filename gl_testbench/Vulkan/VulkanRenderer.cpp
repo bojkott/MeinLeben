@@ -9,6 +9,7 @@
 #include "ConstantBufferVulkan.h"
 #include "Texture2DVulkan.h"
 #include "Sampler2DVulkan.h"
+#include "MeshVulkan.h"
 #include "../Mesh.h"
 
 VkDevice VulkanRenderer::device;
@@ -73,7 +74,7 @@ Material * VulkanRenderer::makeMaterial(const std::string & name)
 
 Mesh * VulkanRenderer::makeMesh()
 {
-	return new Mesh();
+	return new MeshVulkan();
 }
 
 VertexBuffer * VulkanRenderer::makeVertexBuffer(size_t size, VertexBuffer::DATA_USAGE usage)
@@ -174,9 +175,9 @@ void VulkanRenderer::present()
 int VulkanRenderer::shutdown()
 {
 	vkDeviceWaitIdle(device);
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
 	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
@@ -242,22 +243,37 @@ void VulkanRenderer::submit(Mesh * mesh)
 
 void VulkanRenderer::frame()
 {
+	for (int j = 0; j < 4; j++)
+	{
+		auto mesh = drawList[j];
+		for (auto t : mesh->textures)
+		{
+			// we do not really know here if the sampler has been
+			// defined in the shader.
+			t.second->bind(t.first);
+		}
+	}
+
+	std::sort(drawList.begin(), drawList.end(), MeshVulkan::sortMesh);
+
+	
 	for (size_t i = 0; i < commandBuffers.size(); i++)
 	{
 		currentBuffer = &commandBuffers[i];
-		
 		vkCmdBindDescriptorSets(*currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+		
 		for (int j = 0; j < drawList.size(); j++)
 		{
+						
 			auto mesh = drawList[j];
 			mesh->technique->enable(this);
 			size_t numberElements = mesh->geometryBuffers[0].numElements;
-			for (auto t : mesh->textures)
-			{
-				// we do not really know here if the sampler has been
-				// defined in the shader.
-				t.second->bind(t.first);
-			}
+			//for (auto t : mesh->textures)
+			//{
+			//	// we do not really know here if the sampler has been
+			//	// defined in the shader.
+			//	t.second->bind(t.first);
+			//}
 
 			mesh->txBuffer->bind(mesh->technique->getMaterial());
 
@@ -265,7 +281,7 @@ void VulkanRenderer::frame()
 			{
 				mesh->bindIAVertexBuffer(element.first);
 			}
-
+			
 			vkCmdDraw(*currentBuffer, numberElements, 1, 0, 0);
 		}
 

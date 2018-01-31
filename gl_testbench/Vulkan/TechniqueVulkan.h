@@ -14,7 +14,12 @@ public:
 
 	void enable(Renderer* renderer);
 	
+	int id;
+			
+
 private:
 	VkPipeline graphicsPipeline;
+
+	static int numberOfTechniques;
 	
 };

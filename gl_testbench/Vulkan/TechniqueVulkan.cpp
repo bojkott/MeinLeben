@@ -4,9 +4,12 @@
 #include "RenderStateVulkan.h"
 
 TechniqueVulkan* TechniqueVulkan::currentTechnique;
-
+int TechniqueVulkan::numberOfTechniques = 0;
 TechniqueVulkan::TechniqueVulkan(Material * m, RenderState * r) : Technique(m, r)
 {
+	id = numberOfTechniques;
+	numberOfTechniques++;
+
 	material = m;
 	renderState = r;
 	RenderStateVulkan* vkR = (RenderStateVulkan*)r;
@@ -65,6 +68,7 @@ TechniqueVulkan::~TechniqueVulkan()
 {
 	vkDestroyPipeline(VulkanRenderer::device, graphicsPipeline, nullptr);
 }
+
 
 void TechniqueVulkan::enable(Renderer * renderer)
 {
